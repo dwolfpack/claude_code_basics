@@ -3,162 +3,258 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced Sessions – Claude Code</title>
+  <title>Advanced Sessions – Claude Code Basics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07090f;
+      --surface:  #0d1117;
+      --surface-2:#111827;
+      --border:   #1e2d45;
+      --accent:   #3b82f6;
+      --accent-2: #8b5cf6;
+      --text-1:   #f0f6ff;
+      --text-2:   #94a3b8;
+      --text-3:   #4a5568;
+    }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
       line-height: 1.7;
-      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 56px;
+    /* Nav */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,9,15,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
     }
-
-    header h1 {
-      font-size: 2.6rem;
-      color: #58a6ff;
-      margin-bottom: 10px;
+    .topnav-inner {
+      max-width: 1100px; margin: 0 auto;
+      height: 58px; display: flex; align-items: center;
     }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 0.95rem;
+      color: var(--text-1); text-decoration: none;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .nav-logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 0.85rem;
+    }
+    .nav-links { display: flex; gap: 2px; margin-left: auto; }
+    .nav-link {
+      color: var(--text-2); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-link:hover { color: var(--text-1); background: rgba(255,255,255,0.06); }
+    .nav-link.active { color: var(--accent); background: rgba(59,130,246,0.1); }
 
-    header p {
-      color: #8b949e;
-      font-size: 1.05rem;
-      max-width: 560px;
+    /* Page */
+    .page {
+      flex: 1;
+      max-width: 1060px;
       margin: 0 auto;
+      width: 100%;
+      padding: 56px 32px 80px;
     }
 
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-2); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      margin-bottom: 40px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .page-header { margin-bottom: 52px; }
+    .page-header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.4rem; font-weight: 700;
+      letter-spacing: -0.03em; color: var(--text-1);
+      margin-bottom: 12px;
+    }
+    .page-header p { color: var(--text-2); font-size: 1.05rem; max-width: 560px; }
+
+    /* Grid */
     .grid {
-      max-width: 900px;
-      margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 18px;
     }
 
     .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px 28px;
       text-decoration: none;
       color: inherit;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      transition: border-color 0.2s, transform 0.2s;
+      gap: 12px;
+      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+      position: relative; overflow: hidden;
     }
-
     .card:hover {
-      border-color: #58a6ff;
+      border-color: rgba(59,130,246,0.5);
       transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.1);
     }
 
-    .card-icon {
-      font-size: 2rem;
-    }
+    .card-icon { font-size: 2rem; line-height: 1; }
 
     .card h2 {
-      font-size: 1.1rem;
-      color: #f0f6fc;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text-1); letter-spacing: -0.01em;
     }
 
     .card p {
-      color: #8b949e;
-      font-size: 0.9rem;
-      flex-grow: 1;
+      color: var(--text-2); font-size: 0.88rem;
+      line-height: 1.65; flex-grow: 1;
     }
 
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .tag {
-      background: #1f3d5a;
-      color: #58a6ff;
-      border-radius: 20px;
+      background: rgba(59,130,246,0.1);
+      color: #7eb8ff;
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 100px;
       padding: 2px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 0.73rem; font-weight: 600;
     }
 
-    .difficulty {
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 2px 10px;
-      border-radius: 20px;
-    }
-
-    .easy { background: #1a3a2a; color: #3fb950; }
-    .medium { background: #3a2a1a; color: #d29922; }
-    .intermediate { background: #3a1a2a; color: #f78166; }
+    .difficulty { border-radius: 100px; padding: 2px 10px; font-size: 0.73rem; font-weight: 600; }
+    .easy         { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .medium       { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .intermediate { background: rgba(244,63,94,0.1);  color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
 
     footer {
-      text-align: center;
-      margin-top: 56px;
-      color: #484f58;
-      font-size: 0.85rem;
+      text-align: center; padding: 28px 20px;
+      color: var(--text-3); font-size: 0.83rem;
+      border-top: 1px solid var(--border);
     }
+    footer a { color: var(--text-2); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--accent); }
+    .footer-sep { margin: 0 12px; opacity: 0.3; }
 
-    footer a { color: #58a6ff; text-decoration: none; }
+    @media (max-width: 640px) {
+      .topnav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .page { padding: 40px 20px 60px; }
+    }
   </style>
 </head>
 <body>
 
-  <nav style="max-width:900px;margin:0 auto 32px;"><a href="index.html" style="color:#58a6ff;text-decoration:none;font-size:0.9rem;">← Back to Home</a></nav>
-
-  <header>
-    <h1>Advanced Sessions</h1>
-    <p>Go deeper with Claude Code. Learn how to build powerful automations using skills, flows, and subagents.</p>
-  </header>
-
-  <div class="grid">
-
-    <a class="card" href="sessions/skills.html">
-      <div class="card-icon">🛠️</div>
-      <h2>Skills</h2>
-      <p>Create reusable slash commands that give Claude a defined role and instructions. Automate your most common workflows with a single prompt.</p>
-      <div class="card-tags">
-        <span class="tag">Slash Commands</span>
-        <span class="tag">Automation</span>
-        <span class="difficulty easy">Beginner</span>
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="nav-logo" href="index.html">
+        <div class="nav-logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="setup-guide.html">Setup</a>
+        <a class="nav-link" href="projects-list.html">Projects</a>
+        <a class="nav-link active" href="sessions-list.html">Sessions</a>
       </div>
-    </a>
+    </div>
+  </nav>
 
-    <a class="card" href="sessions/flows.html">
-      <div class="card-icon">🔄</div>
-      <h2>Flows</h2>
-      <p>Design multi-step agentic workflows where Claude reasons, acts, and loops until a task is complete. Perfect for complex, multi-action jobs.</p>
-      <div class="card-tags">
-        <span class="tag">Agentic</span>
-        <span class="tag">Workflows</span>
-        <span class="difficulty medium">Intermediate</span>
-      </div>
-    </a>
+  <div class="page">
+    <a class="back-link" href="index.html">← Back to Home</a>
 
-    <a class="card" href="sessions/subagents.html">
-      <div class="card-icon">🤖</div>
-      <h2>Subagents</h2>
-      <p>Spawn specialized agents to handle parallel or isolated tasks. Coordinate multiple Claudes working together to tackle large-scale problems.</p>
-      <div class="card-tags">
-        <span class="tag">Parallel Tasks</span>
-        <span class="tag">Orchestration</span>
-        <span class="difficulty intermediate">Advanced</span>
-      </div>
-    </a>
+    <div class="page-header">
+      <h1>Advanced Sessions</h1>
+      <p>Go deeper with Claude Code. Master skills, flows, subagents, Telegram bots, and the open-source CLI.</p>
+    </div>
 
+    <div class="grid">
+
+      <a class="card" href="sessions/skills.html">
+        <div class="card-icon">🛠️</div>
+        <h2>Skills</h2>
+        <p>Create reusable slash commands that give Claude a defined role. Automate your most common workflows with a single prompt.</p>
+        <div class="card-tags">
+          <span class="tag">Slash Commands</span>
+          <span class="tag">Automation</span>
+          <span class="difficulty easy">Beginner</span>
+        </div>
+      </a>
+
+      <a class="card" href="sessions/flows.html">
+        <div class="card-icon">🔄</div>
+        <h2>Flows</h2>
+        <p>Design multi-step agentic workflows where Claude reasons, acts, and loops until a complex task is fully complete.</p>
+        <div class="card-tags">
+          <span class="tag">Agentic</span>
+          <span class="tag">Workflows</span>
+          <span class="difficulty medium">Intermediate</span>
+        </div>
+      </a>
+
+      <a class="card" href="sessions/subagents.html">
+        <div class="card-icon">🤖</div>
+        <h2>Subagents</h2>
+        <p>Spawn specialized agents to run tasks in parallel. Coordinate multiple Claudes working together on large-scale problems.</p>
+        <div class="card-tags">
+          <span class="tag">Parallel Tasks</span>
+          <span class="tag">Orchestration</span>
+          <span class="difficulty intermediate">Advanced</span>
+        </div>
+      </a>
+
+      <a class="card" href="sessions/telegram.html">
+        <div class="card-icon">✈️</div>
+        <h2>Telegram Publishing</h2>
+        <p>Build Claude-powered tasks that send messages, reports, and alerts directly to a Telegram channel or group via the Bot API.</p>
+        <div class="card-tags">
+          <span class="tag">Telegram</span>
+          <span class="tag">Bot API</span>
+          <span class="difficulty medium">Intermediate</span>
+        </div>
+      </a>
+
+      <a class="card" href="sessions/open-claw.html">
+        <div class="card-icon">🐾</div>
+        <h2>Open Claw</h2>
+        <p>Explore the open-source Claude Code CLI. Clone the repo, understand the architecture, and build on top of it.</p>
+        <div class="card-tags">
+          <span class="tag">Open Source</span>
+          <span class="tag">CLI</span>
+          <span class="difficulty intermediate">Advanced</span>
+        </div>
+      </a>
+
+    </div>
   </div>
 
   <footer>
-    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
+    <span class="footer-sep">|</span>
+    <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
+    <span class="footer-sep">|</span>
+    <span>2026</span>
   </footer>
 
 </body>

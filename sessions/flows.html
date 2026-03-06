@@ -8,83 +8,101 @@
 </head>
 <body>
 
-  <nav><a href="../sessions-list.html">← Back to all sessions</a></nav>
-
-  <header>
-    <div class="header-icon">🔄</div>
-    <h1>Flows</h1>
-    <div class="meta">
-      <span class="tag">Agentic</span>
-      <span class="tag">Workflows</span>
-      <span class="difficulty medium">Intermediate</span>
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="topnav-logo" href="../index.html">
+        <div class="logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="../setup-guide.html">Setup</a>
+        <a class="topnav-link" href="../projects-list.html">Projects</a>
+        <a class="topnav-link active" href="../sessions-list.html">Sessions</a>
+      </div>
     </div>
-    <p>Flows are multi-step agentic workflows where Claude reasons about a goal, takes actions (reading files, running commands, editing code), checks the result, and loops until the task is done — all without you having to micromanage each step.</p>
-  </header>
+  </nav>
 
-  <div class="content">
+  <div class="page-wrap">
 
-    <section>
-      <h2>What you'll learn</h2>
-      <ul>
-        <li>What "agentic" means and how Claude plans and acts in loops</li>
-        <li>How to write goal-oriented prompts that trigger a full flow</li>
-        <li>How Claude uses tools (file read, bash, edit) inside a flow</li>
-        <li>How to review, pause, and guide flows mid-execution</li>
-        <li>When flows are appropriate vs. simple one-shot prompts</li>
-      </ul>
-    </section>
+    <nav><a href="../sessions-list.html">← Back to all sessions</a></nav>
 
-    <section>
-      <h2>How flows work</h2>
-      <ul>
-        <li>You give Claude a high-level goal rather than step-by-step instructions</li>
-        <li>Claude breaks the goal into a plan and executes actions sequentially</li>
-        <li>After each action, Claude checks the result and decides the next step</li>
-        <li>The loop continues until the goal is met or Claude asks for input</li>
-        <li>You can interrupt at any time to redirect or approve risky steps</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>How to start with Claude Code</h2>
-      <div class="prompt-box">
-        <div class="prompt-label">Try this prompt</div>
-        <p>"Look at my entire codebase, find all TODO comments, group them by file and priority, then create a markdown file called TODO.md summarizing them. Run any commands you need to get the full picture."</p>
+    <header>
+      <div class="header-icon">🔄</div>
+      <h1>Flows</h1>
+      <div class="meta">
+        <span class="tag">Agentic</span>
+        <span class="tag">Workflows</span>
+        <span class="difficulty medium">Intermediate</span>
       </div>
-    </section>
+      <p>Flows are multi-step agentic workflows where Claude reasons about a goal, takes actions (reading files, running commands, editing code), checks the result, and loops until the task is done — all without you having to micromanage each step.</p>
+    </header>
 
-    <section>
-      <h2>Tips for effective flows</h2>
-      <ul>
-        <li>State the desired end state clearly — not a list of steps, but a goal</li>
-        <li>Tell Claude what it's allowed to do: read files, run tests, edit code</li>
-        <li>Add constraints: "don't delete anything", "ask before pushing"</li>
-        <li>Use a <code>CLAUDE.md</code> file to set persistent rules for every flow</li>
-        <li>Review the todo list Claude generates — it's your flow's roadmap</li>
-      </ul>
-    </section>
+    <div class="content">
 
-    <section>
-      <h2>Resources</h2>
-      <div class="resources">
-        <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/common-tasks" target="_blank">
-          <div class="resource-title">Claude Code – Common Tasks</div>
-          <div class="resource-desc">Practical examples of agentic flows for real-world development tasks.</div>
-        </a>
-        <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank">
-          <div class="resource-title">Claude Code – Security & Permissions</div>
-          <div class="resource-desc">Understand how Claude asks for permission before taking risky actions in a flow.</div>
-        </a>
-        <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank">
-          <div class="resource-title">Claude Code – Hooks</div>
-          <div class="resource-desc">Trigger shell commands at key points in a flow — before or after tool calls.</div>
-        </a>
-        <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/memory" target="_blank">
-          <div class="resource-title">Claude Code – CLAUDE.md Memory</div>
-          <div class="resource-desc">Persist context and rules across all your flows using CLAUDE.md files.</div>
-        </a>
-      </div>
-    </section>
+      <section>
+        <h2>What you'll learn</h2>
+        <ul>
+          <li>What "agentic" means and how Claude plans and acts in loops</li>
+          <li>How to write goal-oriented prompts that trigger a full flow</li>
+          <li>How Claude uses tools (file read, bash, edit) inside a flow</li>
+          <li>How to review, pause, and guide flows mid-execution</li>
+          <li>When flows are appropriate vs. simple one-shot prompts</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>How flows work</h2>
+        <ul>
+          <li>You give Claude a high-level goal rather than step-by-step instructions</li>
+          <li>Claude breaks the goal into a plan and executes actions sequentially</li>
+          <li>After each action, Claude checks the result and decides the next step</li>
+          <li>The loop continues until the goal is met or Claude asks for input</li>
+          <li>You can interrupt at any time to redirect or approve risky steps</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>How to start with Claude Code</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Try this prompt</div>
+          <p>"Look at my entire codebase, find all TODO comments, group them by file and priority, then create a markdown file called TODO.md summarizing them. Run any commands you need to get the full picture."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Tips for effective flows</h2>
+        <ul>
+          <li>State the desired end state clearly — not a list of steps, but a goal</li>
+          <li>Tell Claude what it's allowed to do: read files, run tests, edit code</li>
+          <li>Add constraints: "don't delete anything", "ask before pushing"</li>
+          <li>Use a <code>CLAUDE.md</code> file to set persistent rules for every flow</li>
+          <li>Review the todo list Claude generates — it's your flow's roadmap</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Resources</h2>
+        <div class="resources">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/common-tasks" target="_blank">
+            <div class="resource-title">Claude Code – Common Tasks</div>
+            <div class="resource-desc">Practical examples of agentic flows for real-world development tasks.</div>
+          </a>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank">
+            <div class="resource-title">Claude Code – Security & Permissions</div>
+            <div class="resource-desc">Understand how Claude asks for permission before taking risky actions in a flow.</div>
+          </a>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank">
+            <div class="resource-title">Claude Code – Hooks</div>
+            <div class="resource-desc">Trigger shell commands at key points in a flow — before or after tool calls.</div>
+          </a>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/memory" target="_blank">
+            <div class="resource-title">Claude Code – CLAUDE.md Memory</div>
+            <div class="resource-desc">Persist context and rules across all your flows using CLAUDE.md files.</div>
+          </a>
+        </div>
+      </section>
+
+    </div>
 
   </div>
 

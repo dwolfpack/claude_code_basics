@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Claw – Claude Code Sessions</title>
+  <link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="topnav-logo" href="../index.html">
+        <div class="logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="../setup-guide.html">Setup</a>
+        <a class="topnav-link" href="../projects-list.html">Projects</a>
+        <a class="topnav-link active" href="../sessions-list.html">Sessions</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <nav><a href="../sessions-list.html">← Back to all sessions</a></nav>
+
+    <header>
+      <div class="header-icon">🐾</div>
+      <h1>Open Claw</h1>
+      <div class="meta">
+        <span class="tag">Open Source</span>
+        <span class="tag">CLI</span>
+        <span class="tag">TypeScript</span>
+        <span class="difficulty intermediate">Advanced</span>
+      </div>
+      <p>Claude Code is open source. "Open Claw" is your guide to exploring the CLI repository — understanding how it works under the hood, running it locally from source, customising its behaviour, and building your own tools on top of it.</p>
+    </header>
+
+    <div class="content">
+
+      <section>
+        <h2>What you'll learn</h2>
+        <ul>
+          <li>Where to find the Claude Code open-source repository</li>
+          <li>How to clone, build, and run the CLI from source</li>
+          <li>The high-level architecture: tools, agents, permissions, and hooks</li>
+          <li>How to read and navigate a TypeScript monorepo of this scale</li>
+          <li>How to contribute patches, open issues, and engage with maintainers</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Why explore the source?</h2>
+        <ul>
+          <li>Understand <em>exactly</em> what Claude can and cannot do with your filesystem</li>
+          <li>Learn how the tool-call loop and permission system are implemented</li>
+          <li>Build custom tool integrations that slot into the existing architecture</li>
+          <li>Debug unexpected behaviour by tracing it to the source</li>
+          <li>Contribute improvements and bug fixes back to the community</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Getting started</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Clone and explore the repo</div>
+          <p>"Clone the Claude Code open-source repository from GitHub, install dependencies, and give me a tour of the top-level directory structure. Explain what each major folder does."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Build and run from source</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Try this prompt</div>
+          <p>"In the cloned Claude Code repo, show me how to build the TypeScript project and run the CLI locally in development mode. Walk me through any environment variables I need to set first."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Architecture deep-dive</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Try this prompt</div>
+          <p>"Read the Claude Code source and explain: (1) how new tools are registered, (2) how the permission system decides what to allow or deny, and (3) how hooks are triggered before and after tool calls. Show me the relevant files."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Adding a custom tool</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Try this prompt</div>
+          <p>"Following the existing pattern in the Claude Code source, add a new tool called 'notify' that sends a desktop notification whenever Claude completes a long-running task. Show me where to register it and how to implement the handler."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Resources</h2>
+        <div class="resources">
+          <a class="resource-card" href="https://github.com/anthropics/claude-code" target="_blank">
+            <div class="resource-title">Claude Code on GitHub</div>
+            <div class="resource-desc">The official open-source repository. Star it, fork it, read the issues and discussions.</div>
+          </a>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank">
+            <div class="resource-title">Claude Code – Official Docs</div>
+            <div class="resource-desc">The canonical reference for all CLI features, configuration, and extension points.</div>
+          </a>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank">
+            <div class="resource-title">Claude Code – Hooks System</div>
+            <div class="resource-desc">The hooks architecture is one of the most powerful extension points in the CLI.</div>
+          </a>
+          <a class="resource-card" href="https://www.typescriptlang.org/docs/" target="_blank">
+            <div class="resource-title">TypeScript Handbook</div>
+            <div class="resource-desc">Claude Code is written in TypeScript. Brush up on the language before diving in.</div>
+          </a>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+  </footer>
+
+</body>
+</html>
