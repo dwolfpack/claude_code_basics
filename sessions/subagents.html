@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subagents – Claude Code Sessions</title>
+  <link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+
+  <nav><a href="../sessions-list.html">← Back to all sessions</a></nav>
+
+  <header>
+    <div class="header-icon">🤖</div>
+    <h1>Subagents</h1>
+    <div class="meta">
+      <span class="tag">Parallel Tasks</span>
+      <span class="tag">Orchestration</span>
+      <span class="difficulty intermediate">Advanced</span>
+    </div>
+    <p>Subagents are specialized Claude instances spawned by an orchestrator to handle a focused piece of work. The orchestrator delegates, the subagent executes, and the result flows back — enabling parallelism and better focus on large tasks.</p>
+  </header>
+
+  <div class="content">
+
+    <section>
+      <h2>What you'll learn</h2>
+      <ul>
+        <li>The difference between an orchestrator and a subagent</li>
+        <li>When to break a task into parallel vs. sequential subagents</li>
+        <li>How subagents are isolated and what context they receive</li>
+        <li>How to prompt Claude to spawn and coordinate subagents</li>
+        <li>How the Claude Agent SDK enables subagent orchestration in code</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How subagents work</h2>
+      <ul>
+        <li>An orchestrator Claude receives a high-level task and a set of tools</li>
+        <li>It identifies subtasks that can run independently and spawns subagents for each</li>
+        <li>Each subagent gets its own context, instructions, and tool access</li>
+        <li>Subagents run in isolation — they cannot see each other's work by default</li>
+        <li>Results are returned to the orchestrator, which combines them into a final output</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How to start with Claude Code</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">Try this prompt</div>
+        <p>"You are an orchestrator. I have three independent tasks: (1) write unit tests for auth.js, (2) refactor utils.js for readability, (3) update README.md to reflect recent changes. Spawn a subagent for each task and run them in parallel, then summarize what each one did."</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Agent SDK example</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">When to use the Agent SDK</div>
+        <p>"Build me a Python script using the Claude Agent SDK that orchestrates two subagents: one that searches the codebase for security issues and one that checks for performance bottlenecks. Collect both reports and print a combined summary."</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Resources</h2>
+      <div class="resources">
+        <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/sub-agents" target="_blank">
+          <div class="resource-title">Claude Code – Sub-agents</div>
+          <div class="resource-desc">Official guide to spawning and coordinating subagents inside Claude Code.</div>
+        </a>
+        <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/agent-tool" target="_blank">
+          <div class="resource-title">Anthropic – Agent Tool</div>
+          <div class="resource-desc">How the Agent tool works and how to structure orchestrator–subagent relationships.</div>
+        </a>
+        <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-agent-sdk" target="_blank">
+          <div class="resource-title">Claude Agent SDK</div>
+          <div class="resource-desc">Build custom multi-agent pipelines programmatically with the Agent SDK.</div>
+        </a>
+        <a class="resource-card" href="https://docs.anthropic.com/en/docs/about-claude/models/overview" target="_blank">
+          <div class="resource-title">Choosing the Right Model</div>
+          <div class="resource-desc">Use powerful models for orchestrators and faster models for focused subagents.</div>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+  </footer>
+
+</body>
+</html>
