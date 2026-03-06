@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Claude Code Basics – Setup Guide</title>
+  <title>Getting Started with Claude Code</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,198 +12,183 @@
       background: #0d1117;
       color: #e6edf3;
       line-height: 1.7;
-      padding: 40px 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-
-    header h1 {
-      font-size: 2.4rem;
-      color: #58a6ff;
-      margin-bottom: 8px;
-    }
-
-    header p {
-      color: #8b949e;
-      font-size: 1rem;
-    }
-
-    .steps {
-      max-width: 760px;
-      margin: 0 auto;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 24px;
     }
 
-    .step {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 28px 32px;
-      position: relative;
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
     }
 
-    .step-number {
-      display: inline-block;
-      background: #58a6ff;
-      color: #0d1117;
-      font-weight: 700;
-      font-size: 0.85rem;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
+    .hero {
       text-align: center;
-      line-height: 28px;
-      margin-bottom: 12px;
+      margin-bottom: 56px;
+      max-width: 620px;
     }
 
-    .step h2 {
-      font-size: 1.15rem;
-      color: #f0f6fc;
-      margin-bottom: 10px;
-    }
-
-    .step p {
-      color: #8b949e;
-      margin-bottom: 12px;
-    }
-
-    .step p:last-child {
-      margin-bottom: 0;
-    }
-
-    code {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: #79c0ff;
-    }
-
-    pre {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 16px 20px;
-      overflow-x: auto;
-      margin-top: 12px;
-    }
-
-    pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      color: #a5d6ff;
-      font-size: 0.9rem;
-    }
-
-    .tag {
+    .hero-badge {
       display: inline-block;
       background: #1f3d5a;
       color: #58a6ff;
       border-radius: 20px;
-      padding: 2px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      margin-bottom: 10px;
+      padding: 4px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      color: #f0f6fc;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      color: #58a6ff;
+    }
+
+    .hero p {
+      color: #8b949e;
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 32px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: #58a6ff;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(88, 166, 255, 0.08);
+    }
+
+    .card-icon {
+      font-size: 2.4rem;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #58a6ff;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .card h2 {
+      font-size: 1.3rem;
+      color: #f0f6fc;
+    }
+
+    .card p {
+      color: #8b949e;
+      font-size: 0.92rem;
+      flex-grow: 1;
+    }
+
+    .card-arrow {
+      color: #58a6ff;
+      font-size: 1.1rem;
+      margin-top: 8px;
     }
 
     footer {
       text-align: center;
-      margin-top: 56px;
+      padding: 28px 20px;
       color: #484f58;
       font-size: 0.85rem;
+      border-top: 1px solid #21262d;
     }
 
     footer a {
       color: #58a6ff;
       text-decoration: none;
     }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-divider {
+      color: #30363d;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Claude Code Basics</h1>
-    <p>A step-by-step guide to connecting Claude Code with GitHub</p>
-    <p style="margin-top:12px;"><a href="projects-list.html" style="color:#58a6ff;text-decoration:none;font-weight:600;">→ Browse first project ideas</a></p>
-  </header>
+  <main>
 
-  <div class="steps">
-
-    <div class="step">
-      <div class="step-number">1</div>
-      <span class="tag">Verify</span>
-      <h2>Check if Git is installed</h2>
-      <p>Open a terminal (CMD, PowerShell, or Git Bash) and run:</p>
-      <pre><code>git --version</code></pre>
-      <p>You should see something like <code>git version 2.53.0.windows.1</code>. If not, download Git from <strong>git-scm.com</strong>.</p>
+    <div class="hero">
+      <div class="hero-badge">Beginner Friendly</div>
+      <h1>Getting Started with<br/><span>Claude Code</span></h1>
+      <p>Everything you need to go from zero to building real projects with AI-assisted coding. Start with the basics, then jump into your first build.</p>
     </div>
 
-    <div class="step">
-      <div class="step-number">2</div>
-      <span class="tag">Configure</span>
-      <h2>Set your Git identity</h2>
-      <p>Tell Git who you are. Claude ran these commands automatically:</p>
-      <pre><code>git config --global user.name "Your Full Name"
-git config --global user.email "your@email.com"</code></pre>
-      <p>You can verify it worked with <code>git config --global --list</code>.</p>
+    <div class="cards">
+
+      <a class="card" href="setup-guide.html">
+        <div class="card-icon">⚙️</div>
+        <div class="card-label">Step 1</div>
+        <h2>Setup Guide</h2>
+        <p>Install Git, configure your identity, connect to GitHub, and understand the basic workflow. Get your environment ready in minutes.</p>
+        <div class="card-arrow">→ Get set up</div>
+      </a>
+
+      <a class="card" href="projects-list.html">
+        <div class="card-icon">🚀</div>
+        <div class="card-label">Step 2</div>
+        <h2>First Projects</h2>
+        <p>Browse 6 beginner-friendly project ideas with resources and ready-made Claude prompts. Pick one and start building today.</p>
+        <div class="card-arrow">→ Explore projects</div>
+      </a>
+
     </div>
 
-    <div class="step">
-      <div class="step-number">3</div>
-      <span class="tag">Authenticate</span>
-      <h2>Connect to GitHub</h2>
-      <p>The easiest way is the <strong>GitHub CLI</strong>. Install it from <strong>cli.github.com</strong>, then run:</p>
-      <pre><code>gh auth login</code></pre>
-      <p>Follow the prompts — it opens your browser to securely log in. You never need to type a password.</p>
-      <p>Alternatively, generate a <strong>Personal Access Token</strong> on GitHub (Settings → Developer Settings → PAT) and use it as your password when Git prompts you.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-number">4</div>
-      <span class="tag">Connect</span>
-      <h2>Clone or link a repository</h2>
-      <p>To clone an existing repo from GitHub to your machine:</p>
-      <pre><code>git clone https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
-      <p>To link a new local folder to an existing GitHub repo:</p>
-      <pre><code>git init
-git remote add origin https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
-    </div>
-
-    <div class="step">
-      <div class="step-number">5</div>
-      <span class="tag">Workflow</span>
-      <h2>Push changes to GitHub</h2>
-      <p>The standard workflow to save and upload your changes:</p>
-      <pre><code>git add .
-git commit -m "Your commit message"
-git push origin main</code></pre>
-      <p>Claude can run these commands for you — just ask!</p>
-    </div>
-
-    <div class="step">
-      <div class="step-number">6</div>
-      <span class="tag">Claude</span>
-      <h2>Let Claude Code help you</h2>
-      <p>Once Git is configured, Claude Code can:</p>
-      <p>• Read and edit files in your working directory</p>
-      <p>• Stage, commit, and push changes to GitHub</p>
-      <p>• Clone repos and create new projects</p>
-      <p>• Work with any repo you point it to</p>
-      <p>Your working directory is set to <code>C:\Users\&lt;your-username&gt;\Documents\claude_projects</code>.</p>
-    </div>
-
-  </div>
+  </main>
 
   <footer>
-    <p>Created with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; 2026</p>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
+      <span class="footer-divider">|</span>
+      <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
+      <span class="footer-divider">|</span>
+      <span>2026</span>
+    </div>
   </footer>
 
 </body>

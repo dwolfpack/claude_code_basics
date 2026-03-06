@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Code Basics – Setup Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.7;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      color: #58a6ff;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #8b949e;
+      font-size: 1rem;
+    }
+
+    .steps {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .step {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 28px 32px;
+      position: relative;
+    }
+
+    .step-number {
+      display: inline-block;
+      background: #58a6ff;
+      color: #0d1117;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      text-align: center;
+      line-height: 28px;
+      margin-bottom: 12px;
+    }
+
+    .step h2 {
+      font-size: 1.15rem;
+      color: #f0f6fc;
+      margin-bottom: 10px;
+    }
+
+    .step p {
+      color: #8b949e;
+      margin-bottom: 12px;
+    }
+
+    .step p:last-child {
+      margin-bottom: 0;
+    }
+
+    code {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #79c0ff;
+    }
+
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #a5d6ff;
+      font-size: 0.9rem;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #1f3d5a;
+      color: #58a6ff;
+      border-radius: 20px;
+      padding: 2px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 56px;
+      color: #484f58;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <nav style="max-width:760px;margin:0 auto 32px;"><a href="index.html" style="color:#58a6ff;text-decoration:none;font-size:0.9rem;">← Back to Home</a></nav>
+
+  <header>
+    <h1>Claude Code Basics</h1>
+    <p>A step-by-step guide to connecting Claude Code with GitHub</p>
+  </header>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <span class="tag">Verify</span>
+      <h2>Check if Git is installed</h2>
+      <p>Open a terminal (CMD, PowerShell, or Git Bash) and run:</p>
+      <pre><code>git --version</code></pre>
+      <p>You should see something like <code>git version 2.53.0.windows.1</code>. If not, download Git from <strong>git-scm.com</strong>.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <span class="tag">Configure</span>
+      <h2>Set your Git identity</h2>
+      <p>Tell Git who you are. Claude ran these commands automatically:</p>
+      <pre><code>git config --global user.name "Your Full Name"
+git config --global user.email "your@email.com"</code></pre>
+      <p>You can verify it worked with <code>git config --global --list</code>.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <span class="tag">Authenticate</span>
+      <h2>Connect to GitHub</h2>
+      <p>The easiest way is the <strong>GitHub CLI</strong>. Install it from <strong>cli.github.com</strong>, then run:</p>
+      <pre><code>gh auth login</code></pre>
+      <p>Follow the prompts — it opens your browser to securely log in. You never need to type a password.</p>
+      <p>Alternatively, generate a <strong>Personal Access Token</strong> on GitHub (Settings → Developer Settings → PAT) and use it as your password when Git prompts you.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <span class="tag">Connect</span>
+      <h2>Clone or link a repository</h2>
+      <p>To clone an existing repo from GitHub to your machine:</p>
+      <pre><code>git clone https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
+      <p>To link a new local folder to an existing GitHub repo:</p>
+      <pre><code>git init
+git remote add origin https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-number">5</div>
+      <span class="tag">Workflow</span>
+      <h2>Push changes to GitHub</h2>
+      <p>The standard workflow to save and upload your changes:</p>
+      <pre><code>git add .
+git commit -m "Your commit message"
+git push origin main</code></pre>
+      <p>Claude can run these commands for you — just ask!</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">6</div>
+      <span class="tag">Claude</span>
+      <h2>Let Claude Code help you</h2>
+      <p>Once Git is configured, Claude Code can:</p>
+      <p>• Read and edit files in your working directory</p>
+      <p>• Stage, commit, and push changes to GitHub</p>
+      <p>• Clone repos and create new projects</p>
+      <p>• Work with any repo you point it to</p>
+      <p>Your working directory is set to <code>C:\Users\&lt;your-username&gt;\Documents\claude_projects</code>.</p>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Created with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+  </footer>
+
+</body>
+</html>
