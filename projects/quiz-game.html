@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Game – Claude Code Projects</title>
+  <link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+
+  <nav><a href="../projects-list.html">← Back to all projects</a></nav>
+
+  <header>
+    <div class="header-icon">🧠</div>
+    <h1>Quiz Game</h1>
+    <div class="meta">
+      <span class="tag">JavaScript</span>
+      <span class="tag">Logic</span>
+      <span class="difficulty intermediate">Advanced Beginner</span>
+    </div>
+    <p>Build an interactive multiple-choice quiz with scoring, a timer, and a results screen. Learn how to manage game state and create a fun user experience.</p>
+  </header>
+
+  <div class="content">
+
+    <section>
+      <h2>What you'll learn</h2>
+      <ul>
+        <li>Managing application state (current question, score, timer)</li>
+        <li>Conditional rendering based on state</li>
+        <li>Using <code>setInterval</code> for countdown timers</li>
+        <li>Fetching questions from a public trivia API</li>
+        <li>Animating transitions between questions</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What to build</h2>
+      <ul>
+        <li>A start screen with a category and difficulty selector</li>
+        <li>A question card with 4 multiple-choice answers</li>
+        <li>A countdown timer per question</li>
+        <li>Immediate feedback (correct/wrong highlight)</li>
+        <li>A final results screen with score and a "Play Again" button</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How to start with Claude Code</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">Try this prompt</div>
+        <p>"Build a quiz game using the Open Trivia Database API. Show 10 multiple-choice questions one at a time with a 15-second timer per question. Highlight correct and wrong answers. Show the final score at the end with a play again button."</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Resources</h2>
+      <div class="resources">
+        <a class="resource-card" href="https://opentdb.com/api_config.php" target="_blank">
+          <div class="resource-title">Open Trivia Database</div>
+          <div class="resource-desc">Free API with thousands of trivia questions across categories and difficulties.</div>
+        </a>
+        <a class="resource-card" href="https://developer.mozilla.org/en-US/docs/Web/API/setInterval" target="_blank">
+          <div class="resource-title">MDN – setInterval</div>
+          <div class="resource-desc">Learn how to create countdown timers using setInterval and clearInterval.</div>
+        </a>
+        <a class="resource-card" href="https://javascript.info/object" target="_blank">
+          <div class="resource-title">javascript.info – Objects</div>
+          <div class="resource-desc">Quiz state (score, index, answers) is best managed as an object.</div>
+        </a>
+        <a class="resource-card" href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_animations" target="_blank">
+          <div class="resource-title">MDN – CSS Animations</div>
+          <div class="resource-desc">Add smooth transitions between questions with CSS keyframe animations.</div>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> · 2026</p>
+  </footer>
+
+</body>
+</html>
