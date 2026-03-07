@@ -3,103 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A structured learning path from first setup to advanced agentic workflows with Claude Code — and the social presence to show the world what you built." />
   <title>Claude Code Basics – Learn to Build with AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #07090f;
-      --surface:  #0d1117;
-      --border:   #1e2d45;
-      --accent:   #3b82f6;
-      --accent-2: #8b5cf6;
-      --text-1:   #f0f6ff;
-      --text-2:   #94a3b8;
-      --text-3:   #4a5568;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text-1);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    /* ── Nav ── */
-    .topnav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(7,9,15,0.85);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 40px;
-    }
-
-    .topnav-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      height: 58px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text-1);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      letter-spacing: -0.02em;
-    }
-
-    .nav-logo-icon {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2px;
-      margin-left: auto;
-    }
-
-    .nav-link {
-      color: var(--text-2);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 8px;
-      transition: color 0.15s, background 0.15s;
-    }
-
-    .nav-link:hover {
-      color: var(--text-1);
-      background: rgba(255,255,255,0.06);
-    }
-
     /* ── Hero ── */
     main {
       flex: 1;
@@ -119,8 +28,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(59,130,246,0.1);
-      border: 1px solid rgba(59,130,246,0.25);
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
       border-radius: 100px;
       padding: 5px 14px 5px 10px;
       font-size: 0.78rem;
@@ -138,7 +47,7 @@
 
     .hero h1 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(2.6rem, 6vw, 4rem);
+      font-size: clamp(2.4rem, 6vw, 4rem);
       font-weight: 700;
       color: var(--text-1);
       letter-spacing: -0.04em;
@@ -173,93 +82,13 @@
       padding: 12px 26px;
       border-radius: 10px;
       transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
-      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
     }
 
     .hero-cta:hover {
       opacity: 0.92;
       transform: translateY(-1px);
-      box-shadow: 0 8px 28px rgba(59,130,246,0.4);
-    }
-
-    /* ── Cards ── */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 1000px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.03) 100%);
-      opacity: 0;
-      transition: opacity 0.18s;
-      pointer-events: none;
-    }
-
-    .card:hover {
-      border-color: rgba(59,130,246,0.5);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.12);
-    }
-
-    .card:hover::before { opacity: 1; }
-
-    .card-step {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-3);
-    }
-
-    .card-icon {
-      font-size: 2.2rem;
-      line-height: 1;
-    }
-
-    .card h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-1);
-      letter-spacing: -0.02em;
-    }
-
-    .card p {
-      color: var(--text-2);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      flex-grow: 1;
-    }
-
-    .card-arrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-top: 4px;
+      box-shadow: 0 8px 28px rgba(59, 130, 246, 0.4);
     }
 
     /* ── Stats strip ── */
@@ -293,58 +122,25 @@
       letter-spacing: 0.06em;
     }
 
-    /* ── Footer ── */
-    footer {
-      text-align: center;
-      padding: 28px 20px;
-      color: var(--text-3);
-      font-size: 0.83rem;
-      border-top: 1px solid var(--border);
+    /* ── Home card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1000px;
     }
 
-    footer a {
-      color: var(--text-2);
-      text-decoration: none;
-      transition: color 0.15s;
+    .card-grid .card {
+      padding: 32px;
+      gap: 14px;
     }
 
-    footer a:hover { color: var(--accent); }
-
-    .footer-sep { margin: 0 12px; opacity: 0.3; }
-
-    /* ── Responsive ── */
     @media (max-width: 640px) {
-      .topnav { padding: 0 20px; }
-      .nav-links { display: none; }
-      main { padding: 60px 20px 80px; }
-      .hero { margin-bottom: 52px; }
-      .stats { gap: 32px; margin-bottom: 52px; }
-    }
-
-    @media (max-width: 600px) {
-      main {
-        padding: 40px 16px;
-      }
-
-      .hero {
-        margin-bottom: 36px;
-      }
-
-      .hero h1 {
-        font-size: 2rem;
-      }
-
-      .hero p {
-        font-size: 1rem;
-      }
-
-      .cards {
-        grid-template-columns: 1fr;
-      }
-
-      .card {
-        padding: 24px;
-      }
+      main { padding: 56px 20px 80px; }
+      .hero { margin-bottom: 48px; }
+      .stats { gap: 32px; margin-bottom: 48px; }
+      .card-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -352,16 +148,19 @@
 
   <nav class="topnav">
     <div class="topnav-inner">
-      <a class="nav-logo" href="index.html">
-        <div class="nav-logo-icon">⚡</div>
+      <a class="topnav-logo" href="index.html">
+        <div class="logo-icon">⚡</div>
         Claude Code Basics
       </a>
-      <div class="nav-links">
-        <a class="nav-link" href="setup-guide.html">Setup</a>
-        <a class="nav-link" href="projects-list.html">Projects</a>
-        <a class="nav-link" href="sessions-list.html">Sessions</a>
-        <a class="nav-link" href="social-list.html">Social</a>
+      <div class="topnav-links" id="nav-links">
+        <a class="topnav-link" href="setup-guide.html">Setup</a>
+        <a class="topnav-link" href="projects-list.html">Projects</a>
+        <a class="topnav-link" href="sessions-list.html">Sessions</a>
+        <a class="topnav-link" href="social-list.html">Social</a>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -432,12 +231,13 @@
   </main>
 
   <footer>
-    <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
+    <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank" rel="noopener noreferrer">Dror Wolfshtat</a>
     <span class="footer-sep">|</span>
-    <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
+    <a href="https://claude.ai/claude-code" target="_blank" rel="noopener noreferrer">Built with Claude Code</a>
     <span class="footer-sep">|</span>
     <span>2026</span>
   </footer>
 
+  <script src="shared.js"></script>
 </body>
 </html>

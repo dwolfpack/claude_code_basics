@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Build Claude-powered tasks that send messages, reports, and alerts directly to a Telegram channel via the Bot API." />
   <title>Telegram Publishing – Claude Code Sessions</title>
   <link rel="stylesheet" href="../shared.css" />
 </head>
@@ -14,12 +15,15 @@
         <div class="logo-icon">⚡</div>
         Claude Code Basics
       </a>
-      <div class="topnav-links">
+      <div class="topnav-links" id="nav-links">
         <a class="topnav-link" href="../setup-guide.html">Setup</a>
         <a class="topnav-link" href="../projects-list.html">Projects</a>
         <a class="topnav-link active" href="../sessions-list.html">Sessions</a>
         <a class="topnav-link" href="../social-list.html">Social</a>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -108,19 +112,19 @@
       <section>
         <h2>Resources</h2>
         <div class="resources">
-          <a class="resource-card" href="https://core.telegram.org/bots/api" target="_blank">
+          <a class="resource-card" href="https://core.telegram.org/bots/api" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Telegram Bot API Docs</div>
             <div class="resource-desc">Full reference for every Bot API method including sendMessage, sendPhoto, and more.</div>
           </a>
-          <a class="resource-card" href="https://core.telegram.org/bots/tutorial" target="_blank">
+          <a class="resource-card" href="https://core.telegram.org/bots/tutorial" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Telegram Bot Tutorial</div>
             <div class="resource-desc">Official step-by-step guide to creating and deploying a Telegram bot from scratch.</div>
           </a>
-          <a class="resource-card" href="https://docs.python-telegram-bot.org/" target="_blank">
+          <a class="resource-card" href="https://docs.python-telegram-bot.org/" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">python-telegram-bot</div>
             <div class="resource-desc">A popular Python wrapper around the Bot API. Great for more complex bots and handlers.</div>
           </a>
-          <a class="resource-card" href="https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows" target="_blank">
+          <a class="resource-card" href="https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">GitHub Actions – Scheduling</div>
             <div class="resource-desc">Use cron triggers to run Claude + Telegram publishing workflows on a schedule.</div>
           </a>
@@ -132,8 +136,9 @@
   </div>
 
   <footer>
-    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank" rel="noopener noreferrer">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
   </footer>
 
+  <script src="../shared.js"></script>
 </body>
 </html>
