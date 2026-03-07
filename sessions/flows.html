@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Design multi-step agentic workflows where Claude reasons, acts, and loops until a complex task is fully complete." />
   <title>Flows – Claude Code Sessions</title>
   <link rel="stylesheet" href="../shared.css" />
 </head>
@@ -14,12 +15,15 @@
         <div class="logo-icon">⚡</div>
         Claude Code Basics
       </a>
-      <div class="topnav-links">
+      <div class="topnav-links" id="nav-links">
         <a class="topnav-link" href="../setup-guide.html">Setup</a>
         <a class="topnav-link" href="../projects-list.html">Projects</a>
         <a class="topnav-link active" href="../sessions-list.html">Sessions</a>
         <a class="topnav-link" href="../social-list.html">Social</a>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -84,19 +88,19 @@
       <section>
         <h2>Resources</h2>
         <div class="resources">
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/common-tasks" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/common-tasks" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – Common Tasks</div>
             <div class="resource-desc">Practical examples of agentic flows for real-world development tasks.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – Security & Permissions</div>
             <div class="resource-desc">Understand how Claude asks for permission before taking risky actions in a flow.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – Hooks</div>
             <div class="resource-desc">Trigger shell commands at key points in a flow — before or after tool calls.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/memory" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/memory" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – CLAUDE.md Memory</div>
             <div class="resource-desc">Persist context and rules across all your flows using CLAUDE.md files.</div>
           </a>
@@ -108,8 +112,9 @@
   </div>
 
   <footer>
-    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank" rel="noopener noreferrer">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
   </footer>
 
+  <script src="../shared.js"></script>
 </body>
 </html>

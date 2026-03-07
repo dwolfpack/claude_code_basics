@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Spawn specialized Claude agents to run tasks in parallel. Coordinate multiple Claudes working together on large-scale problems." />
   <title>Subagents – Claude Code Sessions</title>
   <link rel="stylesheet" href="../shared.css" />
 </head>
@@ -14,12 +15,15 @@
         <div class="logo-icon">⚡</div>
         Claude Code Basics
       </a>
-      <div class="topnav-links">
+      <div class="topnav-links" id="nav-links">
         <a class="topnav-link" href="../setup-guide.html">Setup</a>
         <a class="topnav-link" href="../projects-list.html">Projects</a>
         <a class="topnav-link active" href="../sessions-list.html">Sessions</a>
         <a class="topnav-link" href="../social-list.html">Social</a>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -81,19 +85,19 @@
       <section>
         <h2>Resources</h2>
         <div class="resources">
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/sub-agents" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/sub-agents" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – Sub-agents</div>
             <div class="resource-desc">Official guide to spawning and coordinating subagents inside Claude Code.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/agent-tool" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/agent-tool" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Anthropic – Agent Tool</div>
             <div class="resource-desc">How the Agent tool works and how to structure orchestrator–subagent relationships.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-agent-sdk" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-agent-sdk" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Agent SDK</div>
             <div class="resource-desc">Build custom multi-agent pipelines programmatically with the Agent SDK.</div>
           </a>
-          <a class="resource-card" href="https://docs.anthropic.com/en/docs/about-claude/models/overview" target="_blank">
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/about-claude/models/overview" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Choosing the Right Model</div>
             <div class="resource-desc">Use powerful models for orchestrators and faster models for focused subagents.</div>
           </a>
@@ -105,8 +109,9 @@
   </div>
 
   <footer>
-    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank" rel="noopener noreferrer">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
   </footer>
 
+  <script src="../shared.js"></script>
 </body>
 </html>
