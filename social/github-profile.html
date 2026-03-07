@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Build a GitHub profile README, choose the right pinned repos, write quality READMEs, and let your contribution history tell a story." />
   <title>GitHub Profile – Social Impact</title>
   <link rel="stylesheet" href="../shared.css" />
 </head>
@@ -14,12 +15,15 @@
         <div class="logo-icon">⚡</div>
         Claude Code Basics
       </a>
-      <div class="topnav-links">
+      <div class="topnav-links" id="nav-links">
         <a class="topnav-link" href="../setup-guide.html">Setup</a>
         <a class="topnav-link" href="../projects-list.html">Projects</a>
         <a class="topnav-link" href="../sessions-list.html">Sessions</a>
         <a class="topnav-link active" href="../social-list.html">Social</a>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -102,19 +106,19 @@
       <section>
         <h2>Resources</h2>
         <div class="resources">
-          <a class="resource-card" href="https://underdog.io/blog/how-to-make-your-github-more-impressive-to-employers" target="_blank">
+          <a class="resource-card" href="https://underdog.io/blog/how-to-make-your-github-more-impressive-to-employers" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Make Your GitHub More Impressive – Underdog.io</div>
             <div class="resource-desc">Employer-focused advice on what recruiters actually look for when they open your GitHub.</div>
           </a>
-          <a class="resource-card" href="https://coding-boot-camp.github.io/full-stack/github/professional-readme-guide/" target="_blank">
+          <a class="resource-card" href="https://coding-boot-camp.github.io/full-stack/github/professional-readme-guide/" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Professional README Guide – Coding Boot Camp</div>
             <div class="resource-desc">A structured template and guide for writing READMEs that make your projects shine.</div>
           </a>
-          <a class="resource-card" href="https://github.com/anuraghazra/github-readme-stats" target="_blank">
+          <a class="resource-card" href="https://github.com/anuraghazra/github-readme-stats" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">github-readme-stats</div>
             <div class="resource-desc">Dynamically generated GitHub stats cards you can embed in your profile README.</div>
           </a>
-          <a class="resource-card" href="https://www.analyticsvidhya.com/blog/2025/06/enhance-github-profile/" target="_blank">
+          <a class="resource-card" href="https://www.analyticsvidhya.com/blog/2025/06/enhance-github-profile/" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">10 Ways to Enhance Your GitHub Profile – Analytics Vidhya</div>
             <div class="resource-desc">Practical tips covering READMEs, pinned repos, contributions, and personal branding on GitHub.</div>
           </a>
@@ -126,8 +130,9 @@
   </div>
 
   <footer>
-    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank" rel="noopener noreferrer">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
   </footer>
 
+  <script src="../shared.js"></script>
 </body>
 </html>
