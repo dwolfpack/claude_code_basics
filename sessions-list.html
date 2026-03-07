@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>First Projects – Claude Code Basics</title>
+  <title>Advanced Sessions – Claude Code Basics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
@@ -85,24 +85,19 @@
     }
     .back-link:hover { color: var(--accent); }
 
-    .page-header {
-      margin-bottom: 52px;
-    }
+    .page-header { margin-bottom: 52px; }
     .page-header h1 {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 2.4rem; font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--text-1);
+      letter-spacing: -0.03em; color: var(--text-1);
       margin-bottom: 12px;
     }
-    .page-header p {
-      color: var(--text-2); font-size: 1.05rem; max-width: 560px;
-    }
+    .page-header p { color: var(--text-2); font-size: 1.05rem; max-width: 560px; }
 
     /* Grid */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 18px;
     }
 
@@ -117,8 +112,7 @@
       flex-direction: column;
       gap: 12px;
       transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
     .card:hover {
       border-color: rgba(59,130,246,0.5);
@@ -131,8 +125,7 @@
     .card h2 {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 1.1rem; font-weight: 700;
-      color: var(--text-1);
-      letter-spacing: -0.01em;
+      color: var(--text-1); letter-spacing: -0.01em;
     }
 
     .card p {
@@ -169,7 +162,6 @@
       .topnav { padding: 0 20px; }
       .nav-links { display: none; }
       .page { padding: 40px 20px 60px; }
-      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -183,8 +175,8 @@
       </a>
       <div class="nav-links">
         <a class="nav-link" href="setup-guide.html">Setup</a>
-        <a class="nav-link active" href="projects-list.html">Projects</a>
-        <a class="nav-link" href="sessions-list.html">Sessions</a>
+        <a class="nav-link" href="projects-list.html">Projects</a>
+        <a class="nav-link active" href="sessions-list.html">Sessions</a>
       </div>
     </div>
   </nav>
@@ -193,75 +185,63 @@
     <a class="back-link" href="index.html">← Back to Home</a>
 
     <div class="page-header">
-      <h1>First Projects</h1>
-      <p>Six beginner-friendly builds with full guides, learning objectives, and ready-made Claude prompts. Pick one and ship it today.</p>
+      <h1>Advanced Sessions</h1>
+      <p>Go deeper with Claude Code. Master skills, flows, subagents, Telegram bots, and the open-source CLI.</p>
     </div>
 
     <div class="grid">
 
-      <a class="card" href="projects/portfolio.html">
-        <div class="card-icon">🌐</div>
-        <h2>Personal Portfolio Website</h2>
-        <p>Build a portfolio to showcase who you are and what you've made. A great first project to get comfortable with HTML & CSS.</p>
+      <a class="card" href="sessions/skills.html">
+        <div class="card-icon">🛠️</div>
+        <h2>Skills</h2>
+        <p>Create reusable slash commands that give Claude a defined role. Automate your most common workflows with a single prompt.</p>
         <div class="card-tags">
-          <span class="tag">HTML</span>
-          <span class="tag">CSS</span>
+          <span class="tag">Slash Commands</span>
+          <span class="tag">Automation</span>
           <span class="difficulty easy">Beginner</span>
         </div>
       </a>
 
-      <a class="card" href="projects/todo-app.html">
-        <div class="card-icon">✅</div>
-        <h2>Todo App</h2>
-        <p>The classic starter project. Build a task manager that saves your list in the browser — great for learning JavaScript basics.</p>
+      <a class="card" href="sessions/flows.html">
+        <div class="card-icon">🔄</div>
+        <h2>Flows</h2>
+        <p>Design multi-step agentic workflows where Claude reasons, acts, and loops until a complex task is fully complete.</p>
         <div class="card-tags">
-          <span class="tag">JavaScript</span>
-          <span class="tag">localStorage</span>
-          <span class="difficulty easy">Beginner</span>
-        </div>
-      </a>
-
-      <a class="card" href="projects/weather-dashboard.html">
-        <div class="card-icon">🌤️</div>
-        <h2>Weather Dashboard</h2>
-        <p>Fetch real-time weather data from a public API and display it in a clean dashboard. Learn how APIs and JSON work.</p>
-        <div class="card-tags">
-          <span class="tag">API</span>
-          <span class="tag">JSON</span>
-          <span class="tag">fetch()</span>
+          <span class="tag">Agentic</span>
+          <span class="tag">Workflows</span>
           <span class="difficulty medium">Intermediate</span>
         </div>
       </a>
 
-      <a class="card" href="projects/recipe-finder.html">
-        <div class="card-icon">🍕</div>
-        <h2>Recipe Finder</h2>
-        <p>Search for recipes by ingredient using a free API. Practice building search UIs and working with external data.</p>
+      <a class="card" href="sessions/subagents.html">
+        <div class="card-icon">🤖</div>
+        <h2>Subagents</h2>
+        <p>Spawn specialized agents to run tasks in parallel. Coordinate multiple Claudes working together on large-scale problems.</p>
         <div class="card-tags">
-          <span class="tag">API</span>
-          <span class="tag">Search UI</span>
+          <span class="tag">Parallel Tasks</span>
+          <span class="tag">Orchestration</span>
+          <span class="difficulty intermediate">Advanced</span>
+        </div>
+      </a>
+
+      <a class="card" href="sessions/telegram.html">
+        <div class="card-icon">✈️</div>
+        <h2>Telegram Publishing</h2>
+        <p>Build Claude-powered tasks that send messages, reports, and alerts directly to a Telegram channel or group via the Bot API.</p>
+        <div class="card-tags">
+          <span class="tag">Telegram</span>
+          <span class="tag">Bot API</span>
           <span class="difficulty medium">Intermediate</span>
         </div>
       </a>
 
-      <a class="card" href="projects/budget-tracker.html">
-        <div class="card-icon">💰</div>
-        <h2>Budget Tracker</h2>
-        <p>Track income and expenses with a visual chart. Learn data management, DOM manipulation, and basic charting.</p>
+      <a class="card" href="sessions/open-claw.html">
+        <div class="card-icon">🐾</div>
+        <h2>Open Claw</h2>
+        <p>Explore the open-source Claude Code CLI. Clone the repo, understand the architecture, and build on top of it.</p>
         <div class="card-tags">
-          <span class="tag">JavaScript</span>
-          <span class="tag">Charts</span>
-          <span class="difficulty medium">Intermediate</span>
-        </div>
-      </a>
-
-      <a class="card" href="projects/quiz-game.html">
-        <div class="card-icon">🧠</div>
-        <h2>Quiz Game</h2>
-        <p>Build an interactive quiz with scoring, timers, and multiple choice questions. Learn state management and game logic.</p>
-        <div class="card-tags">
-          <span class="tag">JavaScript</span>
-          <span class="tag">Logic</span>
+          <span class="tag">Open Source</span>
+          <span class="tag">CLI</span>
           <span class="difficulty intermediate">Advanced</span>
         </div>
       </a>

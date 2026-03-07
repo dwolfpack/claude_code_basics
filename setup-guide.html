@@ -3,92 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Claude Code Basics – Setup Guide</title>
+  <title>Setup Guide – Claude Code Basics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07090f;
+      --surface:  #0d1117;
+      --surface-2:#111827;
+      --border:   #1e2d45;
+      --accent:   #3b82f6;
+      --accent-2: #8b5cf6;
+      --text-1:   #f0f6ff;
+      --text-2:   #94a3b8;
+      --text-3:   #4a5568;
+    }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
       line-height: 1.7;
-      padding: 40px 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-
-    header h1 {
-      font-size: 2.4rem;
-      color: #58a6ff;
-      margin-bottom: 8px;
-    }
-
-    header p {
-      color: #8b949e;
-      font-size: 1rem;
-    }
-
-    .steps {
-      max-width: 760px;
-      margin: 0 auto;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 24px;
     }
 
+    /* Nav */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,9,15,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+    }
+    .topnav-inner {
+      max-width: 1100px; margin: 0 auto;
+      height: 58px; display: flex; align-items: center;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 0.95rem;
+      color: var(--text-1); text-decoration: none;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .nav-logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 0.85rem;
+    }
+    .nav-links { display: flex; gap: 2px; margin-left: auto; }
+    .nav-link {
+      color: var(--text-2); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-link:hover { color: var(--text-1); background: rgba(255,255,255,0.06); }
+    .nav-link.active { color: var(--accent); background: rgba(59,130,246,0.1); }
+
+    /* Page */
+    .page {
+      flex: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 56px 32px 80px;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-2); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      margin-bottom: 40px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .page-header { margin-bottom: 48px; }
+    .page-header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.4rem; font-weight: 700;
+      letter-spacing: -0.03em; color: var(--text-1);
+      margin-bottom: 10px;
+    }
+    .page-header p { color: var(--text-2); font-size: 1rem; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+
     .step {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 28px 32px;
-      position: relative;
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 0 20px;
+      align-items: start;
     }
 
     .step-number {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .step-body {}
+
+    .step-tag {
       display: inline-block;
-      background: #58a6ff;
-      color: #0d1117;
-      font-weight: 700;
-      font-size: 0.85rem;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      text-align: center;
-      line-height: 28px;
-      margin-bottom: 12px;
+      background: rgba(59,130,246,0.1);
+      color: #7eb8ff;
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 100px;
+      padding: 2px 10px;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 10px;
     }
 
     .step h2 {
-      font-size: 1.15rem;
-      color: #f0f6fc;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text-1); letter-spacing: -0.01em;
       margin-bottom: 10px;
     }
 
     .step p {
-      color: #8b949e;
-      margin-bottom: 12px;
+      color: var(--text-2);
+      font-size: 0.92rem;
+      margin-bottom: 10px;
+      line-height: 1.7;
     }
 
-    .step p:last-child {
-      margin-bottom: 0;
-    }
+    .step p:last-child { margin-bottom: 0; }
 
     code {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: #79c0ff;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.18);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: 'Consolas', 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #93c5fd;
     }
 
     pre {
-      background: #0d1117;
-      border: 1px solid #30363d;
+      background: #030609;
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 16px 20px;
       overflow-x: auto;
@@ -96,34 +169,38 @@
     }
 
     pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      color: #a5d6ff;
-      font-size: 0.9rem;
+      background: none; border: none; padding: 0;
+      color: #a5d6ff; font-size: 0.88rem; line-height: 1.65;
     }
 
-    .tag {
-      display: inline-block;
-      background: #1f3d5a;
-      color: #58a6ff;
-      border-radius: 20px;
-      padding: 2px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      margin-bottom: 10px;
+    /* Bullet list inside step */
+    .step ul {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 6px;
+      color: var(--text-2); font-size: 0.92rem;
+    }
+    .step ul li { padding-left: 18px; position: relative; }
+    .step ul li::before {
+      content: '▸';
+      position: absolute; left: 0;
+      color: var(--accent); font-size: 0.75em; top: 0.2em;
     }
 
     footer {
-      text-align: center;
-      margin-top: 56px;
-      color: #484f58;
-      font-size: 0.85rem;
+      text-align: center; padding: 28px 20px;
+      color: var(--text-3); font-size: 0.83rem;
+      border-top: 1px solid var(--border);
     }
+    footer a { color: var(--text-2); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--accent); }
+    .footer-sep { margin: 0 12px; opacity: 0.3; }
 
-    footer a {
-      color: #58a6ff;
-      text-decoration: none;
+    @media (max-width: 640px) {
+      .topnav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .page { padding: 40px 20px 60px; }
+      .step { grid-template-columns: 1fr; }
+      .step-number { margin-bottom: 12px; }
     }
 
     @media (max-width: 600px) {
@@ -147,82 +224,116 @@
 </head>
 <body>
 
-  <nav style="max-width:760px;margin:0 auto 32px;"><a href="index.html" style="color:#58a6ff;text-decoration:none;font-size:0.9rem;">← Back to Home</a></nav>
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="nav-logo" href="index.html">
+        <div class="nav-logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="nav-links">
+        <a class="nav-link active" href="setup-guide.html">Setup</a>
+        <a class="nav-link" href="projects-list.html">Projects</a>
+        <a class="nav-link" href="sessions-list.html">Sessions</a>
+      </div>
+    </div>
+  </nav>
 
-  <header>
-    <h1>Claude Code Basics</h1>
-    <p>A step-by-step guide to connecting Claude Code with GitHub</p>
-  </header>
+  <div class="page">
+    <a class="back-link" href="index.html">← Back to Home</a>
 
-  <div class="steps">
-
-    <div class="step">
-      <div class="step-number">1</div>
-      <span class="tag">Verify</span>
-      <h2>Check if Git is installed</h2>
-      <p>Open a terminal (CMD, PowerShell, or Git Bash) and run:</p>
-      <pre><code>git --version</code></pre>
-      <p>You should see something like <code>git version 2.53.0.windows.1</code>. If not, download Git from <strong>git-scm.com</strong>.</p>
+    <div class="page-header">
+      <h1>Setup Guide</h1>
+      <p>Connect Claude Code to GitHub in six steps. Takes about 10 minutes.</p>
     </div>
 
-    <div class="step">
-      <div class="step-number">2</div>
-      <span class="tag">Configure</span>
-      <h2>Set your Git identity</h2>
-      <p>Tell Git who you are. Claude ran these commands automatically:</p>
-      <pre><code>git config --global user.name "Your Full Name"
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+          <div class="step-tag">Verify</div>
+          <h2>Check if Git is installed</h2>
+          <p>Open a terminal (CMD, PowerShell, or Git Bash) and run:</p>
+          <pre><code>git --version</code></pre>
+          <p>You should see something like <code>git version 2.53.0.windows.1</code>. If not, download Git from <strong>git-scm.com</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+          <div class="step-tag">Configure</div>
+          <h2>Set your Git identity</h2>
+          <p>Tell Git who you are. Claude ran these commands automatically:</p>
+          <pre><code>git config --global user.name "Your Full Name"
 git config --global user.email "your@email.com"</code></pre>
-      <p>You can verify it worked with <code>git config --global --list</code>.</p>
-    </div>
+          <p>Verify it worked with <code>git config --global --list</code>.</p>
+        </div>
+      </div>
 
-    <div class="step">
-      <div class="step-number">3</div>
-      <span class="tag">Authenticate</span>
-      <h2>Connect to GitHub</h2>
-      <p>The easiest way is the <strong>GitHub CLI</strong>. Install it from <strong>cli.github.com</strong>, then run:</p>
-      <pre><code>gh auth login</code></pre>
-      <p>Follow the prompts — it opens your browser to securely log in. You never need to type a password.</p>
-      <p>Alternatively, generate a <strong>Personal Access Token</strong> on GitHub (Settings → Developer Settings → PAT) and use it as your password when Git prompts you.</p>
-    </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+          <div class="step-tag">Authenticate</div>
+          <h2>Connect to GitHub</h2>
+          <p>The easiest way is the <strong>GitHub CLI</strong>. Install it from <strong>cli.github.com</strong>, then run:</p>
+          <pre><code>gh auth login</code></pre>
+          <p>Follow the prompts — it opens your browser to securely log in. You never need to type a password.</p>
+          <p>Alternatively, generate a <strong>Personal Access Token</strong> on GitHub (Settings → Developer Settings → PAT) and use it as your password when Git prompts you.</p>
+        </div>
+      </div>
 
-    <div class="step">
-      <div class="step-number">4</div>
-      <span class="tag">Connect</span>
-      <h2>Clone or link a repository</h2>
-      <p>To clone an existing repo from GitHub to your machine:</p>
-      <pre><code>git clone https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
-      <p>To link a new local folder to an existing GitHub repo:</p>
-      <pre><code>git init
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+          <div class="step-tag">Connect</div>
+          <h2>Clone or link a repository</h2>
+          <p>To clone an existing repo from GitHub to your machine:</p>
+          <pre><code>git clone https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
+          <p>To link a new local folder to an existing GitHub repo:</p>
+          <pre><code>git init
 git remote add origin https://github.com/&lt;your-username&gt;/&lt;your-repo&gt;.git</code></pre>
-    </div>
+        </div>
+      </div>
 
-    <div class="step">
-      <div class="step-number">5</div>
-      <span class="tag">Workflow</span>
-      <h2>Push changes to GitHub</h2>
-      <p>The standard workflow to save and upload your changes:</p>
-      <pre><code>git add .
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+          <div class="step-tag">Workflow</div>
+          <h2>Push changes to GitHub</h2>
+          <p>The standard workflow to save and upload your changes:</p>
+          <pre><code>git add .
 git commit -m "Your commit message"
 git push origin main</code></pre>
-      <p>Claude can run these commands for you — just ask!</p>
-    </div>
+          <p>Claude can run these commands for you — just ask!</p>
+        </div>
+      </div>
 
-    <div class="step">
-      <div class="step-number">6</div>
-      <span class="tag">Claude</span>
-      <h2>Let Claude Code help you</h2>
-      <p>Once Git is configured, Claude Code can:</p>
-      <p>• Read and edit files in your working directory</p>
-      <p>• Stage, commit, and push changes to GitHub</p>
-      <p>• Clone repos and create new projects</p>
-      <p>• Work with any repo you point it to</p>
-      <p>Your working directory is set to <code>C:\Users\&lt;your-username&gt;\Documents\claude_projects</code>.</p>
-    </div>
+      <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+          <div class="step-tag">Claude</div>
+          <h2>Let Claude Code help you</h2>
+          <p>Once Git is configured, Claude Code can:</p>
+          <ul>
+            <li>Read and edit files in your working directory</li>
+            <li>Stage, commit, and push changes to GitHub</li>
+            <li>Clone repos and scaffold new projects</li>
+            <li>Run tests, lint code, and fix issues automatically</li>
+          </ul>
+          <p style="margin-top:12px;">Your working directory is set to <code>C:\Users\&lt;your-username&gt;\Documents\claude_projects</code>.</p>
+        </div>
+      </div>
 
+    </div>
   </div>
 
   <footer>
-    <p>Created with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+    <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
+    <span class="footer-sep">|</span>
+    <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
+    <span class="footer-sep">|</span>
+    <span>2026</span>
   </footer>
 
 </body>

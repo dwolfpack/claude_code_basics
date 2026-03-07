@@ -3,149 +3,322 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting Started with Claude Code</title>
+  <title>Claude Code Basics – Learn to Build with AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07090f;
+      --surface:  #0d1117;
+      --border:   #1e2d45;
+      --accent:   #3b82f6;
+      --accent-2: #8b5cf6;
+      --text-1:   #f0f6ff;
+      --text-2:   #94a3b8;
+      --text-3:   #4a5568;
+    }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
       line-height: 1.7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
+    /* ── Nav ── */
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,9,15,0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+    }
+
+    .topnav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-1);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2px;
+      margin-left: auto;
+    }
+
+    .nav-link {
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .nav-link:hover {
+      color: var(--text-1);
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ── Hero ── */
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
+      padding: 80px 24px 100px;
     }
 
     .hero {
       text-align: center;
-      margin-bottom: 56px;
-      max-width: 620px;
+      max-width: 680px;
+      margin-bottom: 72px;
     }
 
-    .hero-badge {
-      display: inline-block;
-      background: #1f3d5a;
-      color: #58a6ff;
-      border-radius: 20px;
-      padding: 4px 16px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 100px;
+      padding: 5px 14px 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #7eb8ff;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
-      margin-bottom: 20px;
+      margin-bottom: 28px;
+    }
+
+    .hero-eyebrow::before {
+      content: '✦';
+      font-size: 0.65rem;
     }
 
     .hero h1 {
-      font-size: 3rem;
-      color: #f0f6fc;
-      line-height: 1.2;
-      margin-bottom: 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.6rem, 6vw, 4rem);
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 24px;
     }
 
-    .hero h1 span {
-      color: #58a6ff;
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa 60%, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .hero p {
-      color: #8b949e;
+      color: var(--text-2);
       font-size: 1.1rem;
-      max-width: 500px;
-      margin: 0 auto;
+      max-width: 520px;
+      margin: 0 auto 36px;
+      line-height: 1.8;
     }
 
-    .cards {
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 12px 26px;
+      border-radius: 10px;
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+
+    .hero-cta:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(59,130,246,0.4);
+    }
+
+    /* ── Cards ── */
+    .card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
       width: 100%;
-      max-width: 680px;
+      max-width: 1000px;
     }
 
     .card {
-      background: #161b22;
-      border: 1px solid #30363d;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 32px;
       text-decoration: none;
       color: inherit;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      gap: 14px;
+      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.03) 100%);
+      opacity: 0;
+      transition: opacity 0.18s;
+      pointer-events: none;
     }
 
     .card:hover {
-      border-color: #58a6ff;
+      border-color: rgba(59,130,246,0.5);
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(88, 166, 255, 0.08);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.12);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .card-step {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
     }
 
     .card-icon {
-      font-size: 2.4rem;
-    }
-
-    .card-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #58a6ff;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      font-size: 2.2rem;
+      line-height: 1;
     }
 
     .card h2 {
-      font-size: 1.3rem;
-      color: #f0f6fc;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -0.02em;
     }
 
     .card p {
-      color: #8b949e;
-      font-size: 0.92rem;
+      color: var(--text-2);
+      font-size: 0.9rem;
+      line-height: 1.7;
       flex-grow: 1;
     }
 
     .card-arrow {
-      color: #58a6ff;
-      font-size: 1.1rem;
-      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 4px;
     }
 
+    /* ── Stats strip ── */
+    .stats {
+      display: flex;
+      gap: 48px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 72px;
+    }
+
+    .stat { text-align: center; }
+
+    .stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-3);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 28px 20px;
-      color: #484f58;
-      font-size: 0.85rem;
-      border-top: 1px solid #21262d;
+      color: var(--text-3);
+      font-size: 0.83rem;
+      border-top: 1px solid var(--border);
     }
 
     footer a {
-      color: #58a6ff;
+      color: var(--text-2);
       text-decoration: none;
+      transition: color 0.15s;
     }
 
-    footer a:hover {
-      text-decoration: underline;
-    }
+    footer a:hover { color: var(--accent); }
 
-    .footer-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
+    .footer-sep { margin: 0 12px; opacity: 0.3; }
 
-    .footer-divider {
-      color: #30363d;
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .topnav { padding: 0 20px; }
+      .nav-links { display: none; }
+      main { padding: 60px 20px 80px; }
+      .hero { margin-bottom: 52px; }
+      .stats { gap: 32px; margin-bottom: 52px; }
     }
 
     @media (max-width: 600px) {
@@ -177,30 +350,68 @@
 </head>
 <body>
 
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="nav-logo" href="index.html">
+        <div class="nav-logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="setup-guide.html">Setup</a>
+        <a class="nav-link" href="projects-list.html">Projects</a>
+        <a class="nav-link" href="sessions-list.html">Sessions</a>
+      </div>
+    </div>
+  </nav>
+
   <main>
 
     <div class="hero">
-      <div class="hero-badge">Beginner Friendly</div>
-      <h1>Getting Started with<br/><span>Claude Code</span></h1>
-      <p>Everything you need to go from zero to building real projects with AI-assisted coding. Start with the basics, then jump into your first build.</p>
+      <div class="hero-eyebrow">Beginner Friendly</div>
+      <h1>Build real things with<br/><span class="gradient">Claude Code</span></h1>
+      <p>A structured learning path from first setup to advanced agentic workflows. No experience needed — just curiosity and a goal.</p>
+      <a class="hero-cta" href="setup-guide.html">Start from the beginning →</a>
     </div>
 
-    <div class="cards">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Learning Paths</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Project Guides</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Advanced Sessions</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
 
       <a class="card" href="setup-guide.html">
+        <div class="card-step">Step 1</div>
         <div class="card-icon">⚙️</div>
-        <div class="card-label">Step 1</div>
         <h2>Setup Guide</h2>
-        <p>Install Git, configure your identity, connect to GitHub, and understand the basic workflow. Get your environment ready in minutes.</p>
-        <div class="card-arrow">→ Get set up</div>
+        <p>Install Git, configure your identity, connect to GitHub, and understand the core workflow. Ready in minutes.</p>
+        <div class="card-arrow">Get set up →</div>
       </a>
 
       <a class="card" href="projects-list.html">
+        <div class="card-step">Step 2</div>
         <div class="card-icon">🚀</div>
-        <div class="card-label">Step 2</div>
         <h2>First Projects</h2>
-        <p>Browse 6 beginner-friendly project ideas with resources and ready-made Claude prompts. Pick one and start building today.</p>
-        <div class="card-arrow">→ Explore projects</div>
+        <p>Six beginner-friendly project guides with resources and ready-made Claude prompts. Pick one and ship it.</p>
+        <div class="card-arrow">Explore projects →</div>
+      </a>
+
+      <a class="card" href="sessions-list.html">
+        <div class="card-step">Step 3</div>
+        <div class="card-icon">⚡</div>
+        <h2>Advanced Sessions</h2>
+        <p>Level up with skills, flows, subagents, Telegram integrations, and open-source Claude Code.</p>
+        <div class="card-arrow">Go advanced →</div>
       </a>
 
     </div>
@@ -208,13 +419,11 @@
   </main>
 
   <footer>
-    <div class="footer-links">
-      <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
-      <span class="footer-divider">|</span>
-      <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
-      <span class="footer-divider">|</span>
-      <span>2026</span>
-    </div>
+    <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a>
+    <span class="footer-sep">|</span>
+    <a href="https://claude.ai/claude-code" target="_blank">Built with Claude Code</a>
+    <span class="footer-sep">|</span>
+    <span>2026</span>
   </footer>
 
 </body>
