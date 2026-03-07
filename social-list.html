@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced Sessions – Claude Code Basics</title>
+  <title>Social Impact – Claude Code Basics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
@@ -13,7 +13,6 @@
     :root {
       --bg:       #07090f;
       --surface:  #0d1117;
-      --surface-2:#111827;
       --border:   #1e2d45;
       --accent:   #3b82f6;
       --accent-2: #8b5cf6;
@@ -32,7 +31,6 @@
       flex-direction: column;
     }
 
-    /* Nav */
     .topnav {
       position: sticky; top: 0; z-index: 100;
       background: rgba(7,9,15,0.88);
@@ -67,7 +65,6 @@
     .nav-link:hover { color: var(--text-1); background: rgba(255,255,255,0.06); }
     .nav-link.active { color: var(--accent); background: rgba(59,130,246,0.1); }
 
-    /* Page */
     .page {
       flex: 1;
       max-width: 1060px;
@@ -92,12 +89,11 @@
       letter-spacing: -0.03em; color: var(--text-1);
       margin-bottom: 12px;
     }
-    .page-header p { color: var(--text-2); font-size: 1.05rem; max-width: 560px; }
+    .page-header p { color: var(--text-2); font-size: 1.05rem; max-width: 580px; }
 
-    /* Grid */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 18px;
     }
 
@@ -147,7 +143,30 @@
     .difficulty { border-radius: 100px; padding: 2px 10px; font-size: 0.73rem; font-weight: 600; }
     .easy         { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
     .medium       { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-    .intermediate { background: rgba(244,63,94,0.1);  color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
+
+    /* Intro banner */
+    .intro-banner {
+      background: linear-gradient(135deg, rgba(59,130,246,0.07), rgba(139,92,246,0.05));
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .intro-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .intro-banner h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--text-1); margin-bottom: 8px;
+    }
+    .intro-banner p { color: var(--text-2); font-size: 0.92rem; line-height: 1.7; }
 
     footer {
       text-align: center; padding: 28px 20px;
@@ -162,6 +181,7 @@
       .topnav { padding: 0 20px; }
       .nav-links { display: none; }
       .page { padding: 40px 20px 60px; }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -176,8 +196,8 @@
       <div class="nav-links">
         <a class="nav-link" href="setup-guide.html">Setup</a>
         <a class="nav-link" href="projects-list.html">Projects</a>
-        <a class="nav-link active" href="sessions-list.html">Sessions</a>
-        <a class="nav-link" href="social-list.html">Social</a>
+        <a class="nav-link" href="sessions-list.html">Sessions</a>
+        <a class="nav-link active" href="social-list.html">Social</a>
       </div>
     </div>
   </nav>
@@ -186,64 +206,58 @@
     <a class="back-link" href="index.html">← Back to Home</a>
 
     <div class="page-header">
-      <h1>Advanced Sessions</h1>
-      <p>Go deeper with Claude Code. Master skills, flows, subagents, Telegram bots, and the open-source CLI.</p>
+      <h1>Social Impact</h1>
+      <p>The projects you build are only half the story. These guides show you how to present your work online so future employers can find it, understand it, and remember it.</p>
+    </div>
+
+    <div class="intro-banner">
+      <h2>Why this matters</h2>
+      <p>Recruiters and hiring managers search LinkedIn and GitHub before they ever look at a CV. A well-optimised profile, a clear project README, and one well-written post about something you built can open doors that a traditional job application never will. These guides give you the exact playbook — backed by research and ready-made Claude prompts to write the copy.</p>
     </div>
 
     <div class="grid">
 
-      <a class="card" href="sessions/skills.html">
-        <div class="card-icon">🛠️</div>
-        <h2>Skills</h2>
-        <p>Create reusable slash commands that give Claude a defined role. Automate your most common workflows with a single prompt.</p>
+      <a class="card" href="social/linkedin-profile.html">
+        <div class="card-icon">💼</div>
+        <h2>LinkedIn Profile</h2>
+        <p>Optimise your headline, About section, Featured projects, and Skills to rank higher in recruiter searches and make the right first impression.</p>
         <div class="card-tags">
-          <span class="tag">Slash Commands</span>
-          <span class="tag">Automation</span>
+          <span class="tag">LinkedIn</span>
+          <span class="tag">Profile</span>
           <span class="difficulty easy">Beginner</span>
         </div>
       </a>
 
-      <a class="card" href="sessions/flows.html">
-        <div class="card-icon">🔄</div>
-        <h2>Flows</h2>
-        <p>Design multi-step agentic workflows where Claude reasons, acts, and loops until a complex task is fully complete.</p>
+      <a class="card" href="social/github-profile.html">
+        <div class="card-icon">🐙</div>
+        <h2>GitHub Profile</h2>
+        <p>Build a profile README, choose the right pinned repos, write quality project READMEs, and let your contribution history tell a story.</p>
         <div class="card-tags">
-          <span class="tag">Agentic</span>
-          <span class="tag">Workflows</span>
+          <span class="tag">GitHub</span>
+          <span class="tag">Portfolio</span>
+          <span class="difficulty easy">Beginner</span>
+        </div>
+      </a>
+
+      <a class="card" href="social/linkedin-posts.html">
+        <div class="card-icon">✍️</div>
+        <h2>Writing LinkedIn Posts</h2>
+        <p>Hook readers in 110 characters, use storytelling frameworks, format for mobile, time your posts, and let Claude write your first draft.</p>
+        <div class="card-tags">
+          <span class="tag">Content</span>
+          <span class="tag">Storytelling</span>
           <span class="difficulty medium">Intermediate</span>
         </div>
       </a>
 
-      <a class="card" href="sessions/subagents.html">
-        <div class="card-icon">🤖</div>
-        <h2>Subagents</h2>
-        <p>Spawn specialized agents to run tasks in parallel. Coordinate multiple Claudes working together on large-scale problems.</p>
+      <a class="card" href="social/personal-brand.html">
+        <div class="card-icon">🌟</div>
+        <h2>Personal Brand</h2>
+        <p>Define your content pillars, build in public, choose your platform strategy, and stay consistent enough for the compounding to kick in.</p>
         <div class="card-tags">
-          <span class="tag">Parallel Tasks</span>
-          <span class="tag">Orchestration</span>
-          <span class="difficulty intermediate">Advanced</span>
-        </div>
-      </a>
-
-      <a class="card" href="sessions/telegram.html">
-        <div class="card-icon">✈️</div>
-        <h2>Telegram Publishing</h2>
-        <p>Build Claude-powered tasks that send messages, reports, and alerts directly to a Telegram channel or group via the Bot API.</p>
-        <div class="card-tags">
-          <span class="tag">Telegram</span>
-          <span class="tag">Bot API</span>
+          <span class="tag">Branding</span>
+          <span class="tag">Strategy</span>
           <span class="difficulty medium">Intermediate</span>
-        </div>
-      </a>
-
-      <a class="card" href="sessions/open-claw.html">
-        <div class="card-icon">🐾</div>
-        <h2>Open Claw</h2>
-        <p>Explore the open-source Claude Code CLI. Clone the repo, understand the architecture, and build on top of it.</p>
-        <div class="card-tags">
-          <span class="tag">Open Source</span>
-          <span class="tag">CLI</span>
-          <span class="difficulty intermediate">Advanced</span>
         </div>
       </a>
 
