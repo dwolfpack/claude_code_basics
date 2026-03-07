@@ -378,4 +378,6 @@ footer a:hover { color: var(--accent); }
   header h1 { font-size: 1.9rem; }
   .topnav { padding: 0 16px; }
   .topnav-links { display: none; }
+  .prompt-box { padding: 16px; }
+  .resources { grid-template-columns: 1fr; }
 }
