@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Profile – Social Impact</title>
+  <link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="topnav-logo" href="../index.html">
+        <div class="logo-icon">⚡</div>
+        Claude Code Basics
+      </a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="../setup-guide.html">Setup</a>
+        <a class="topnav-link" href="../projects-list.html">Projects</a>
+        <a class="topnav-link" href="../sessions-list.html">Sessions</a>
+        <a class="topnav-link active" href="../social-list.html">Social</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <nav><a href="../social-list.html">← Back to all guides</a></nav>
+
+    <header>
+      <div class="header-icon">🐙</div>
+      <h1>GitHub Profile</h1>
+      <div class="meta">
+        <span class="tag">GitHub</span>
+        <span class="tag">Portfolio</span>
+        <span class="tag">Open Source</span>
+        <span class="difficulty easy">Beginner</span>
+      </div>
+      <p>Your GitHub profile is your passive portfolio — it speaks for you whether you're active or not. Recruiters open it, scroll through your pinned repos, glance at your README, and form an impression in under 30 seconds. Make those seconds count.</p>
+    </header>
+
+    <div class="content">
+
+      <section>
+        <h2>Profile README — your digital handshake</h2>
+        <ul>
+          <li>Create a repo named <strong>exactly after your GitHub username</strong> — this unlocks the special profile README at the top of your page</li>
+          <li>Include: a 2–3 line bio, your tech stack (with badge icons), what you're currently building or learning, and links to LinkedIn, portfolio, and email</li>
+          <li>Add a <strong>GitHub Stats card</strong> via <code>github-readme-stats</code> to show language usage and contribution activity</li>
+          <li>Keep it skimmable — a few tasteful visuals and short sections, not a wall of text</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Pinned repositories — your six most valuable slots</h2>
+        <ul>
+          <li>Pin <strong>4–6 repos</strong> that represent your strongest, most diverse work — many recruiters will not scroll past these</li>
+          <li>Choose projects that show breadth (different stacks or problem domains) and depth (more than a tutorial copy)</li>
+          <li>It is fine to pin an in-progress project — it signals active learning. Just make sure it has commits, a clear README, and visible intent</li>
+          <li>Unpin repos with no README, no description, and no activity — they make the whole profile look abandoned</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Project READMEs — the biggest differentiator</h2>
+        <ul>
+          <li>Every public pinned repo must have a quality README: what it does and why, setup/installation steps, usage examples, and a screenshot or demo GIF</li>
+          <li>Add a table of contents for longer READMEs. Include an <code>assets/</code> folder for screenshots</li>
+          <li>A well-written README is the single biggest difference between an impressive repo and an ignored one — it shows you care about communication, not just code</li>
+          <li>Use badges (build status, license, version) at the top for a professional look</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Contribution activity</h2>
+        <ul>
+          <li>Consistent activity over time is a positive signal — it shows ongoing learning. But do not obsess over an all-green graph</li>
+          <li>Quality beats quantity: meaningful commit messages, merged PRs, and resolved issues signal far more than raw commit counts</li>
+          <li>Enable <strong>"Include private contributions on my profile"</strong> in settings — your professional work at a company will appear as activity without revealing code</li>
+          <li>One open-source contribution — even fixing a typo in docs — stands out significantly to anyone who looks</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Open source & GitHub Pages</h2>
+        <ul>
+          <li>Contributing to established open-source projects is one of the highest-signal activities on GitHub — start small: fix a bug, improve docs, add a test</li>
+          <li>Participate in <strong>Hacktoberfest</strong> (October) for a structured way to get your first contributions</li>
+          <li>Host your portfolio site on <strong>GitHub Pages</strong> — it creates a live link on your profile and shows you know how to deploy</li>
+          <li>Update your pinned repos and README regularly — a profile that looks stale suggests disengagement</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Prompt Claude to write your README</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Try this prompt</div>
+          <p>"Write a professional README for my GitHub project. It's a weather dashboard built with React and the OpenWeather API. Include: a short description, tech stack badges, features list, setup instructions, a placeholder for a screenshot, and an MIT license section. Make it clean and employer-ready."</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Resources</h2>
+        <div class="resources">
+          <a class="resource-card" href="https://underdog.io/blog/how-to-make-your-github-more-impressive-to-employers" target="_blank">
+            <div class="resource-title">Make Your GitHub More Impressive – Underdog.io</div>
+            <div class="resource-desc">Employer-focused advice on what recruiters actually look for when they open your GitHub.</div>
+          </a>
+          <a class="resource-card" href="https://coding-boot-camp.github.io/full-stack/github/professional-readme-guide/" target="_blank">
+            <div class="resource-title">Professional README Guide – Coding Boot Camp</div>
+            <div class="resource-desc">A structured template and guide for writing READMEs that make your projects shine.</div>
+          </a>
+          <a class="resource-card" href="https://github.com/anuraghazra/github-readme-stats" target="_blank">
+            <div class="resource-title">github-readme-stats</div>
+            <div class="resource-desc">Dynamically generated GitHub stats cards you can embed in your profile README.</div>
+          </a>
+          <a class="resource-card" href="https://www.analyticsvidhya.com/blog/2025/06/enhance-github-profile/" target="_blank">
+            <div class="resource-title">10 Ways to Enhance Your GitHub Profile – Analytics Vidhya</div>
+            <div class="resource-desc">Practical tips covering READMEs, pinned repos, contributions, and personal branding on GitHub.</div>
+          </a>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Built with <a href="https://claude.ai/claude-code" target="_blank">Claude Code</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/dror-wolfshtat/" target="_blank">Dror Wolfshtat</a> &nbsp;·&nbsp; 2026</p>
+  </footer>
+
+</body>
+</html>
