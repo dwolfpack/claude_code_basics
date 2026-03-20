@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jungle Runner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a0a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #7fff00;
+      text-shadow: 0 0 10px #7fff0088;
+      margin-bottom: 10px;
+      letter-spacing: 4px;
+    }
+
+    #hud {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    #hud span { color: #7fff00; font-weight: bold; }
+
+    #gameCanvas {
+      border: 3px solid #2d5a27;
+      border-radius: 8px;
+      box-shadow: 0 0 30px #2d5a2788;
+      display: block;
+    }
+
+    #message {
+      margin-top: 16px;
+      font-size: 1.1rem;
+      color: #ffd700;
+      min-height: 1.4em;
+      text-align: center;
+    }
+
+    #startBtn {
+      margin-top: 14px;
+      padding: 10px 36px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: #2d5a27;
+      color: #7fff00;
+      border: 2px solid #7fff00;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: background 0.2s;
+    }
+
+    #startBtn:hover { background: #3a7a33; }
+    #startBtn:disabled { opacity: 0.4; cursor: default; }
+
+    #controls {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <h1>JUNGLE RUNNER</h1>
+  <div id="hud">
+    SCORE: <span id="scoreDisplay">0</span>
+    &nbsp;&nbsp;
+    LIVES: <span id="livesDisplay">3</span>
+    &nbsp;&nbsp;
+    HI-SCORE: <span id="hiDisplay">0</span>
+  </div>
+  <canvas id="gameCanvas" width="800" height="280"></canvas>
+  <div id="message">Press START or SPACE to play!</div>
+  <button id="startBtn">START</button>
+  <div id="controls">SPACE / UP / TAP = Jump &nbsp;|&nbsp; Collect gems &nbsp;|&nbsp; Avoid animals</div>
+
+  <script src="game.js"></script>
+</body>
+</html>
