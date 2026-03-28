@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Build a YouTube Research Tool with Claude Code — search for videos on any topic, collect their links, and feed them to NotebookLM for deep AI-powered research you can query." />
+  <meta name="description" content="Build a fully automated YouTube Research Tool with Claude Code — find videos on any topic, send them directly to NotebookLM via MCP, and query the research without touching the browser." />
   <title>YouTube Research Tool – Claude Code Sessions</title>
   <link rel="stylesheet" href="../shared.css" />
 </head>
@@ -35,139 +35,153 @@
       <div class="header-icon">🎬</div>
       <h1>YouTube Research Tool</h1>
       <div class="meta">
+        <span class="tag">MCP</span>
         <span class="tag">YouTube API</span>
         <span class="tag">NotebookLM</span>
-        <span class="tag">Research</span>
+        <span class="tag">Automation</span>
         <span class="difficulty medium">Intermediate</span>
       </div>
-      <p>Build a Claude skill that searches YouTube for the best videos on any topic, curates the links, and prepares them for NotebookLM — giving you a queryable AI research assistant trained on video content.</p>
+      <p>Claude Code finds the best YouTube videos on any topic and sends them directly to NotebookLM — creating a queryable research notebook with zero copy-pasting. The key is the <strong>notebooklm-mcp</strong> server, which gives Claude native tool access to NotebookLM.</p>
     </header>
 
     <div class="content">
 
       <section>
-        <h2>What you'll build</h2>
+        <h2>How it works end-to-end</h2>
         <ul>
-          <li>A <code>/youtube-research</code> skill that takes a topic and returns curated video links</li>
-          <li>A pipeline that feeds those links into NotebookLM as sources</li>
-          <li>A research notebook you can query conversationally for deep insights</li>
-          <li>Optional: a script to automate video discovery with the YouTube Data API</li>
+          <li><strong>You type:</strong> <code>/youtube-research transformer architecture for beginners</code></li>
+          <li><strong>Claude searches</strong> YouTube for the 10 best videos on your topic</li>
+          <li><strong>Claude calls NotebookLM MCP tools</strong> to create a notebook and add each video URL as a source</li>
+          <li><strong>Claude queries the notebook</strong> and returns a deep research summary — all in one turn</li>
+          <li>No browser. No copy-paste. No manual steps.</li>
         </ul>
       </section>
 
       <section>
-        <h2>How the pipeline works</h2>
+        <h2>What makes this possible: notebooklm-mcp</h2>
+        <p style="color: var(--text-2); font-size: 0.95rem; margin-bottom: 14px;">
+          <a href="https://github.com/PleasePrompto/notebooklm-mcp" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">notebooklm-mcp</a> is an MCP server that exposes NotebookLM as a set of tools Claude can call directly — create notebooks, add sources, run queries, and get citation-backed answers. Authentication is handled once via a browser login that saves a persistent session.
+        </p>
         <ul>
-          <li><strong>Step 1 – Discover:</strong> Claude searches YouTube for videos matching your topic using web search or the YouTube Data API</li>
-          <li><strong>Step 2 – Curate:</strong> Claude filters results by relevance, view count, and recency, and returns a clean list of URLs</li>
-          <li><strong>Step 3 – Import:</strong> You paste the URLs into NotebookLM as sources — it ingests the transcripts automatically</li>
-          <li><strong>Step 4 – Research:</strong> Ask NotebookLM questions and get answers grounded in the video content</li>
+          <li>Provides tools: <code>create_notebook</code>, <code>add_source</code>, <code>query_notebook</code>, and more</li>
+          <li>Supports YouTube URLs, web pages, PDFs, and text as sources</li>
+          <li>Returns answers with citations pointing back to specific source moments</li>
+          <li>One-time Google login saves a cookie file — subsequent runs need no browser interaction</li>
         </ul>
       </section>
 
       <section>
-        <h2>Step 1 — Create the skill</h2>
+        <h2>Step 1 — Install notebooklm-mcp</h2>
         <div class="prompt-box">
           <div class="prompt-label">Prompt to Claude Code</div>
-          <p>"Create a skill called /youtube-research. When I run it with a topic, it should search YouTube for the 10 most relevant and recent videos on that subject. Return a markdown list with each video's title, channel, publish date, a one-sentence summary, and a direct YouTube URL. Prioritise educational content from authoritative channels. Save it to .claude/commands/youtube-research.md."</p>
+          <p>"Install the notebooklm-mcp package and configure it as an MCP server in my Claude Code settings. I want Claude to be able to create NotebookLM notebooks, add YouTube URLs as sources, and query them — all without leaving the terminal."</p>
+        </div>
+        <p style="color: var(--text-2); font-size: 0.92rem; margin-top: 16px;">Claude will run <code>npm install -g notebooklm-mcp</code> (or the pip equivalent) and add the server config to your <code>~/.claude/settings.json</code> under the <code>mcpServers</code> key.</p>
+        <pre><code>{
+  "mcpServers": {
+    "notebooklm": {
+      "command": "notebooklm-mcp",
+      "args": []
+    }
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>Step 2 — Authenticate once</h2>
+        <ul>
+          <li>Run <code>notebooklm-mcp auth</code> in your terminal</li>
+          <li>A browser window opens — log in with your Google account</li>
+          <li>Your session is saved to a local cookie file</li>
+          <li>That's it — all future Claude calls to NotebookLM reuse this session automatically</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Step 3 — Create the /youtube-research skill</h2>
+        <div class="prompt-box">
+          <div class="prompt-label">Prompt to Claude Code</div>
+          <p>"Create a skill called /youtube-research. It should: (1) search YouTube for the 10 best educational videos on the topic in $ARGUMENTS, (2) use the notebooklm MCP tools to create a new notebook named after the topic, (3) add each video URL as a source and wait for ingestion, (4) query the notebook with 'Give me a comprehensive research summary with key insights, points of debate, and practical takeaways', and (5) return the full response. Save it to .claude/commands/youtube-research.md."</p>
         </div>
       </section>
 
       <section>
         <h2>The skill file</h2>
-        <p style="color: var(--text-2); font-size: 0.95rem; margin-bottom: 16px;">Claude will create a file like this at <code>.claude/commands/youtube-research.md</code>:</p>
-        <pre><code>You are a YouTube research assistant.
+        <pre><code>You are a YouTube research assistant with access to NotebookLM via MCP tools.
 
-Search YouTube for the 10 most relevant, high-quality, and recent videos
-on the following topic: $ARGUMENTS
+Topic to research: $ARGUMENTS
 
-For each video return:
-- **Title** – the full video title
-- **Channel** – the channel or creator name
-- **Published** – approximate publish date
-- **Summary** – one sentence describing what the video covers
-- **URL** – the full YouTube watch URL (https://www.youtube.com/watch?v=...)
+Follow these steps exactly:
 
-Focus on educational, authoritative content. Prefer videos with transcripts
-enabled (most public videos have auto-generated captions). Avoid shorts
-under 3 minutes. Sort by relevance to the topic.
+## 1. Find videos
+Search YouTube for the 10 most relevant, educational, and recent videos on
+the topic. Prefer content from authoritative channels. Avoid Shorts (under
+3 minutes). Collect the full YouTube watch URL for each video.
 
-After the list, output a "## NotebookLM Import" section that contains only
-the bare URLs, one per line, so the user can copy-paste them directly into
-NotebookLM's "Add source → Website URL" dialog.</code></pre>
+## 2. Create a notebook
+Use the notebooklm `create_notebook` tool with the name:
+"Research: $ARGUMENTS"
+
+## 3. Add sources
+For each of the 10 YouTube URLs, call the notebooklm `add_source` tool.
+Wait for all sources to finish ingesting before proceeding.
+
+## 4. Query for deep research
+Call the notebooklm `query_notebook` tool with this prompt:
+"Provide a comprehensive research report on the topic. Include:
+- Core concepts and definitions
+- Key insights and arguments from across the videos
+- Points where speakers agree or disagree
+- Practical recommendations and takeaways
+- Suggested next steps for deeper learning"
+
+## 5. Return results
+Present the notebook's response in full. Include the notebook name and
+a list of the source videos at the end so the user can open them directly.</code></pre>
       </section>
 
       <section>
-        <h2>Step 2 — Run the skill</h2>
+        <h2>Step 4 — Run it</h2>
         <div class="prompt-box">
           <div class="prompt-label">In Claude Code terminal</div>
-          <p>/youtube-research transformer architecture explained for beginners</p>
+          <p>/youtube-research how large language models actually work</p>
         </div>
-        <p style="color: var(--text-2); font-size: 0.92rem; margin-top: 16px;">Claude returns a curated list with titles, summaries, and URLs — plus a clean URL block at the bottom ready to paste into NotebookLM.</p>
+        <p style="color: var(--text-2); font-size: 0.92rem; margin-top: 16px;">Claude searches YouTube, creates the NotebookLM notebook, adds all 10 videos, and returns a deep research report — fully automated in a single command.</p>
       </section>
 
       <section>
-        <h2>Step 3 — Import into NotebookLM</h2>
+        <h2>Going further</h2>
         <ul>
-          <li>Open <strong>NotebookLM</strong> at <code>notebooklm.google.com</code> and create a new notebook</li>
-          <li>Click <strong>Add source</strong> and choose <strong>Website URL</strong></li>
-          <li>Paste each YouTube URL — NotebookLM fetches the video transcript as its source</li>
-          <li>Add all 10 URLs (NotebookLM supports up to 50 sources per notebook)</li>
-          <li>Wait ~30 seconds for ingestion, then start asking questions in the chat panel</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Step 4 — Query your research notebook</h2>
-        <p style="color: var(--text-2); font-size: 0.95rem; margin-bottom: 16px;">Once your videos are loaded, try queries like:</p>
-        <ul>
-          <li>"Summarise the key concepts explained across all these videos"</li>
-          <li>"What do the speakers disagree on?"</li>
-          <li>"Give me a study guide based on this content"</li>
-          <li>"What practical advice did the creators recommend?"</li>
-          <li>"Which video goes deepest on [specific subtopic]?"</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Optional — Use the YouTube Data API</h2>
-        <p style="color: var(--text-2); font-size: 0.95rem; margin-bottom: 16px;">For more precise results, connect Claude to the official YouTube Data API v3:</p>
-        <div class="prompt-box">
-          <div class="prompt-label">Prompt to Claude Code</div>
-          <p>"Create a Python script youtube_search.py that uses the YouTube Data API v3 to search for videos on a given topic. Accept the topic as a CLI argument. Return the top 10 results as JSON with videoId, title, channelTitle, publishedAt, and description. Store the API key in a .env file."</p>
-        </div>
-        <p style="color: var(--text-2); font-size: 0.92rem; margin-top: 16px;">Get a free API key from Google Cloud Console — the YouTube Data API has a generous free tier (10,000 units/day).</p>
-      </section>
-
-      <section>
-        <h2>Tips for better research</h2>
-        <ul>
-          <li>Add a date filter to your skill prompt: "published in the last 12 months" for fresh content</li>
-          <li>Run the skill multiple times with different angles on your topic to broaden coverage</li>
-          <li>Include a mix of introductory and advanced videos for well-rounded notebooks</li>
-          <li>NotebookLM's Audio Overview feature can synthesise all sources into a podcast-style summary</li>
-          <li>Use NotebookLM's citation links to jump directly to the part of a video transcript that answers your question</li>
+          <li><strong>Reuse notebooks:</strong> Ask Claude to query an existing notebook by name — "Search my 'Research: LLMs' notebook for anything about fine-tuning"</li>
+          <li><strong>Multi-topic notebooks:</strong> Run the skill with several related topics and add all videos to one notebook for cross-topic synthesis</li>
+          <li><strong>Audio Overview:</strong> Use the <code>create_audio_overview</code> MCP tool to generate a podcast-style summary of all sources</li>
+          <li><strong>YouTube Data API:</strong> For more precise video discovery, swap Claude's web search for a Python script backed by the YouTube Data API v3 — get free API keys from Google Cloud Console</li>
+          <li><strong>Scheduled research:</strong> Use Claude Code's <code>/schedule</code> skill to run <code>/youtube-research</code> weekly and keep a notebook current on a fast-moving topic</li>
         </ul>
       </section>
 
       <section>
         <h2>Resources</h2>
         <div class="resources">
+          <a class="resource-card" href="https://github.com/PleasePrompto/notebooklm-mcp" target="_blank" rel="noopener noreferrer">
+            <div class="resource-title">notebooklm-mcp on GitHub</div>
+            <div class="resource-desc">The MCP server that gives Claude direct tool access to NotebookLM. Includes setup docs and available tools.</div>
+          </a>
           <a class="resource-card" href="https://notebooklm.google.com" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">NotebookLM</div>
-            <div class="resource-desc">Google's AI-powered research notebook. Add YouTube URLs as sources and query them conversationally.</div>
+            <div class="resource-desc">Google's AI research notebook. Ingests YouTube transcripts, PDFs, and web pages as queryable sources.</div>
           </a>
           <a class="resource-card" href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">YouTube Data API v3</div>
             <div class="resource-desc">Official API for searching YouTube programmatically. Free tier covers thousands of searches per day.</div>
           </a>
-          <a class="resource-card" href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">
-            <div class="resource-title">Google Cloud Console</div>
-            <div class="resource-desc">Enable the YouTube Data API and generate your free API key here.</div>
+          <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/mcp" target="_blank" rel="noopener noreferrer">
+            <div class="resource-title">Claude Code – MCP Servers</div>
+            <div class="resource-desc">How to configure and use MCP servers in Claude Code to extend Claude with external tool access.</div>
           </a>
           <a class="resource-card" href="https://docs.anthropic.com/en/docs/claude-code/slash-commands" target="_blank" rel="noopener noreferrer">
             <div class="resource-title">Claude Code – Slash Commands</div>
-            <div class="resource-desc">How to create and use custom skills like /youtube-research in Claude Code.</div>
+            <div class="resource-desc">How to build skills like /youtube-research that orchestrate multi-step agentic workflows.</div>
           </a>
         </div>
       </section>
