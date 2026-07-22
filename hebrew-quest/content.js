@@ -28,52 +28,36 @@ function pickDistractors(correct, count, pool) {
 
 function buildMemoryMatchGrade1() {
   // Returns the pool of unique symbols; game.js duplicates + shuffles into a board.
-  return ['🐶', '🐱', '🐰', '🦁', '🐼', '🐸', '🦋', '🐢'];
+  // Hebrew letters, not generic pictures, so the memory game itself teaches letter shapes.
+  return ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח'];
 }
 
-function buildCountingGrade1() {
+function buildLetterCountGrade1() {
+  // A row of letters; count how many times the target letter appears in it.
   const items = [
-    { emoji: '🍎', count: 3 },
-    { emoji: '⚽', count: 5 },
-    { emoji: '🎈', count: 2 },
-    { emoji: '🐝', count: 4 },
-    { emoji: '🌟', count: 6 },
-    { emoji: '🐠', count: 3 },
-    { emoji: '🍌', count: 7 },
-    { emoji: '🌸', count: 5 },
+    { row: ['כ', 'ב', 'כ', 'ד'], target: 'כ' },
+    { row: ['א', 'ה', 'א', 'ה', 'א'], target: 'א' },
+    { row: ['ש', 'ל', 'ש', 'ל', 'ש', 'ל'], target: 'ש' },
+    { row: ['מ', 'מ', 'נ', 'מ'], target: 'מ' },
+    { row: ['ת', 'ר', 'ת', 'ר', 'ת'], target: 'ת' },
+    { row: ['ד', 'ג', 'ד'], target: 'ד' },
+    { row: ['ק', 'פ', 'ק', 'פ', 'פ'], target: 'ק' },
+    { row: ['ס', 'ס', 'ס', 'ע'], target: 'ס' },
   ];
   return items.map(it => {
+    const count = it.row.filter(l => l === it.target).length;
     const distractors = new Set();
     while (distractors.size < 3) {
-      const d = Math.max(1, it.count + (Math.floor(Math.random() * 5) - 2));
-      if (d !== it.count) distractors.add(d);
+      const d = Math.max(1, count + (Math.floor(Math.random() * 5) - 2));
+      if (d !== count) distractors.add(d);
     }
     return {
-      emoji: it.emoji.repeat(it.count),
-      question: 'כמה יש כאן?',
-      options: [String(it.count), ...[...distractors].map(String)],
-      answer: String(it.count),
+      emoji: it.row.join(' '),
+      question: `כמה פעמים מופיעה האות "${it.target}"?`,
+      options: [String(count), ...[...distractors].map(String)],
+      answer: String(count),
     };
   });
-}
-
-function buildShapesColorsGrade1() {
-  const items = [
-    { target: '🔴', options: ['🔴', '🔵', '🟢', '🟡'] },
-    { target: '🟦', options: ['🟦', '🟥', '🟩', '🟨'] },
-    { target: '🔺', options: ['🔺', '🔻', '⭐', '⬛'] },
-    { target: '⭐', options: ['⭐', '🌙', '☀️', '❤️'] },
-    { target: '❤️', options: ['❤️', '💙', '💚', '💛'] },
-    { target: '🟣', options: ['🟣', '🟠', '🔴', '🔵'] },
-    { target: '⬛', options: ['⬛', '⬜', '🟥', '🟦'] },
-    { target: '🔻', options: ['🔻', '🔺', '🔷', '🔶'] },
-  ];
-  return items.map(it => ({
-    emoji: it.target,
-    question: 'מצאו את אותה הצורה',
-    options: it.options,
-    answer: it.target,
-  }));
 }
 
 function buildLetterSoundGrade1() {
@@ -107,27 +91,31 @@ function buildWordPictureAudioGrade1() {
   }));
 }
 
-function buildLetterAnimalGrade1() {
-  // Each entry: a target letter, the correct animal (whose Hebrew name starts
-  // with it), and 3 distractor animals whose names start with other letters.
-  // Verified so exactly one option matches the target letter.
+function buildLetterPictureGrade1() {
+  // See AND hear a letter (speak = its name), then match a picture whose Hebrew
+  // word starts with that letter. Distractor pictures all start with other
+  // letters - verified so exactly one option matches the target per item.
   const items = [
-    { letter: 'כ', correct: '🐶', options: ['🐶', '🦁', '🐘', '🐍'] }, // כלב
-    { letter: 'ח', correct: '🐱', options: ['🐱', '🐴', '🦆', '🦉'] }, // חתול
-    { letter: 'פ', correct: '🐘', options: ['🐘', '🐱', '🐭', '🐢'] }, // פיל
-    { letter: 'א', correct: '🦁', options: ['🦁', '🐶', '🐟', '🦊'] }, // אריה
-    { letter: 'ד', correct: '🐻', options: ['🐻', '🐰', '🐵', '🦓'] }, // דוב
-    { letter: 'נ', correct: '🐍', options: ['🐍', '🐘', '🐑', '🦆'] }, // נחש
-    { letter: 'ש', correct: '🦊', options: ['🦊', '🐷', '🐢', '🐭'] }, // שועל
-    { letter: 'ז', correct: '🦓', options: ['🦓', '🐯', '🦜', '🐴'] }, // זברה
-    { letter: 'ת', correct: '🦜', options: ['🦜', '🐘', '🐍', '🐱'] }, // תוכי
-    { letter: 'ק', correct: '🐵', options: ['🐵', '🦋', '🐺', '🐑'] }, // קוף
+    { letter: 'א', correct: '🦁', options: ['🦁', '🐶', '📖', '🌸'] },   // אריה
+    { letter: 'ב', correct: '🏠', options: ['🏠', '🐱', '🌙', '⭐'] },   // בית
+    { letter: 'ד', correct: '🐻', options: ['🐻', '🦜', '🐵', '❤️'] },  // דוב
+    { letter: 'ה', correct: '⛰️', options: ['⛰️', '🐍', '🎒', '🐑'] },  // הר
+    { letter: 'ח', correct: '🐱', options: ['🐱', '🚪', '⚽', '🌊'] },   // חתול
+    { letter: 'י', correct: '🌙', options: ['🌙', '🐻', '⭐', '🏠'] },   // ירח
+    { letter: 'כ', correct: '🐶', options: ['🐶', '🦊', '📖', '🐍'] },   // כלב
+    { letter: 'ל', correct: '❤️', options: ['❤️', '🐷', '🎂', '🦓'] },  // לב
+    { letter: 'נ', correct: '🐍', options: ['🐍', '🐘', '🎒', '🐑'] },   // נחש
+    { letter: 'פ', correct: '🐘', options: ['🐘', '🐶', '❤️', '📖'] },   // פיל
+    { letter: 'צ', correct: '🐦', options: ['🐦', '🐴', '🏠', '🐍'] },   // ציפור
+    { letter: 'ש', correct: '☀️', options: ['☀️', '🐻', '📖', '🐵'] },   // שמש
+    { letter: 'ת', correct: '🍎', options: ['🍎', '🐴', '🎂', '🐍'] },   // תפוח
   ];
   return items.map(it => ({
     emoji: it.letter,
-    question: 'איזו חיה מתחילה באות הזו?',
+    question: 'הקשיבו וראו את האות - איזו תמונה מתאימה לה?',
     options: it.options,
     answer: it.correct,
+    speak: LETTER_SPEECH_NAME[it.letter],
   }));
 }
 
@@ -152,21 +140,23 @@ function buildLetterOrderGrade1() {
   }));
 }
 
-function buildPatternsGrade1() {
+function buildLetterPatternGrade1() {
+  // Same pattern-completion idea as before, but with Hebrew letters instead of
+  // generic shapes, so it reinforces letter recognition rather than just logic.
   const items = [
-    { seq: '🔴🔵🔴🔵', next: '🔴', options: ['🔴', '🔵', '🟢', '🟡'] },
-    { seq: '⭐🌙⭐🌙', next: '⭐', options: ['⭐', '🌙', '☀️', '❤️'] },
-    { seq: '🍎🍌🍎🍌', next: '🍎', options: ['🍎', '🍌', '🍇', '🍊'] },
-    { seq: '🔺🔺🔻🔺🔺', next: '🔻', options: ['🔻', '🔺', '⭐', '⬛'] },
-    { seq: '🐱🐶🐱🐶🐱', next: '🐶', options: ['🐶', '🐱', '🐰', '🐻'] },
-    { seq: '🟢🟢🟡🟢🟢', next: '🟡', options: ['🟡', '🟢', '🔵', '🔴'] },
-    { seq: '☀️🌙☀️🌙☀️', next: '🌙', options: ['🌙', '☀️', '⭐', '☁️'] },
-    { seq: '🐸🐸🦋🐸🐸', next: '🦋', options: ['🦋', '🐸', '🐢', '🐰'] },
+    { seq: ['א', 'ב', 'א', 'ב'], next: 'א' },
+    { seq: ['ג', 'ד', 'ג', 'ד'], next: 'ג' },
+    { seq: ['ה', 'ו', 'ה', 'ו'], next: 'ה' },
+    { seq: ['כ', 'ל', 'כ', 'ל'], next: 'כ' },
+    { seq: ['מ', 'מ', 'נ', 'מ', 'מ'], next: 'נ' },
+    { seq: ['ע', 'פ', 'ע', 'פ', 'ע'], next: 'פ' },
+    { seq: ['ק', 'ק', 'ר', 'ק', 'ק'], next: 'ר' },
+    { seq: ['ש', 'ת', 'ש', 'ת'], next: 'ש' },
   ];
   return items.map(it => ({
-    emoji: `${it.seq}❓`,
-    question: 'מה מגיע אחר כך ברצף?',
-    options: it.options,
+    emoji: `${it.seq.join(' ')} ❓`,
+    question: 'איזו אות מגיעה אחר כך ברצף?',
+    options: [it.next, ...pickDistractors(it.next, 3)],
     answer: it.next,
   }));
 }
@@ -291,14 +281,13 @@ const CONTENT = {
   grade1: {
     label: 'כיתה א׳',
     categories: [
-      { id: 'memoryMatch', title: 'משחק זיכרון', emoji: '🃏', desc: 'מצאו את הזוגות התואמים', type: 'memory', build: buildMemoryMatchGrade1 },
-      { id: 'counting', title: 'ספירה כיפית', emoji: '🔢', desc: 'כמה יש בתמונה?', build: buildCountingGrade1 },
-      { id: 'shapesColors', title: 'צבעים וצורות', emoji: '🔺', desc: 'מצאו את הצורה הזהה', build: buildShapesColorsGrade1 },
+      { id: 'memoryMatch', title: 'זיכרון אותיות', emoji: '🃏', desc: 'מצאו את זוגות האותיות', type: 'memory', build: buildMemoryMatchGrade1 },
+      { id: 'letterCount', title: 'ספרו אותיות', emoji: '🔢', desc: 'כמה פעמים מופיעה האות?', build: buildLetterCountGrade1 },
       { id: 'letterSound', title: 'הקשיבו ומצאו אות', emoji: '🔊', desc: 'זהו את האות שנשמעה', build: buildLetterSoundGrade1 },
       { id: 'wordPictureAudio', title: 'הקשיבו ובחרו תמונה', emoji: '🖼️', desc: 'הקשיבו למילה ובחרו תמונה', build: buildWordPictureAudioGrade1 },
-      { id: 'letterAnimal', title: 'אות וחיה', emoji: '🦁', desc: 'איזו חיה מתחילה באות?', build: buildLetterAnimalGrade1 },
+      { id: 'letterPicture', title: 'אות ותמונה', emoji: '🦁', desc: 'ראו ושמעו אות, מצאו תמונה מתאימה', build: buildLetterPictureGrade1 },
       { id: 'letterOrder', title: 'סדר האותיות', emoji: '🔡', desc: 'מה האות הבאה באלף-בית?', build: buildLetterOrderGrade1 },
-      { id: 'patterns', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את הרצף', build: buildPatternsGrade1 },
+      { id: 'letterPattern', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את רצף האותיות', build: buildLetterPatternGrade1 },
     ],
   },
   grade5: {
