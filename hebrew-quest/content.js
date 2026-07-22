@@ -161,6 +161,25 @@ function buildLetterPatternGrade1() {
   }));
 }
 
+function buildBuildWordGrade1() {
+  // Tap the letters in order to spell the word shown as a picture. Kept to
+  // short 2-letter words so it stays approachable for pre-readers.
+  const words = [
+    { word: 'יד', prompt: '✋' },
+    { word: 'דג', prompt: '🐟' },
+    { word: 'לב', prompt: '❤️' },
+    { word: 'חג', prompt: '🎉' },
+    { word: 'כד', prompt: '🏺' },
+    { word: 'עץ', prompt: '🌳' },
+  ];
+  return words.map(w => ({
+    prompt: w.prompt,
+    instruction: 'הרכיבו את המילה בתמונה',
+    tokens: w.word.split(''),
+    speak: w.word,
+  }));
+}
+
 function buildRhymeMatchGrade1() {
   // Genuine Hebrew sound-rhymes only (verified same vowel + final consonant),
   // not just similar spelling. Target word is spoken; options are pictures -
@@ -334,6 +353,23 @@ function buildVerbTenseGrade5() {
   }));
 }
 
+function buildSentenceUnscrambleGrade5() {
+  // Tap the words in order to rebuild a correct, simple sentence.
+  const sentences = [
+    'הילד קורא ספר מעניין',
+    'הכלב רץ מהר בגן',
+    'הילדה ציירה ציור יפה',
+    'השמש זורחת בשמיים הכחולים',
+    'התלמידים למדו שיעור חדש',
+    'הציפורים שרות שיר יפה',
+  ];
+  return sentences.map(sentence => ({
+    instruction: 'סדרו את המילים למשפט נכון',
+    tokens: sentence.split(' '),
+    speak: sentence,
+  }));
+}
+
 const CONTENT = {
   grade1: {
     label: 'כיתה א׳',
@@ -346,6 +382,7 @@ const CONTENT = {
       { id: 'letterOrder', title: 'סדר האותיות', emoji: '🔡', desc: 'מה האות הבאה באלף-בית?', build: buildLetterOrderGrade1 },
       { id: 'letterPattern', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את רצף האותיות', build: buildLetterPatternGrade1 },
       { id: 'rhymeMatch', title: 'מילים מתחרזות', emoji: '🎵', desc: 'הקשיבו ומצאו מילה מתחרזת', build: buildRhymeMatchGrade1 },
+      { id: 'buildWord', title: 'בונים מילה', emoji: '🧱', desc: 'הרכיבו את המילה מהאותיות', type: 'build', build: buildBuildWordGrade1 },
     ],
   },
   grade5: {
@@ -358,6 +395,7 @@ const CONTENT = {
       { id: 'grammar', title: 'חלקי דיבור', emoji: '📝', desc: 'פועל, שם עצם או שם תואר?', build: buildGrammarGrade5 },
       { id: 'verbTense', title: 'זמני פועל', emoji: '⏳', desc: 'עבר, הווה או עתיד?', build: buildVerbTenseGrade5 },
       { id: 'wordRiddles', title: 'חידות מילים', emoji: '❓', desc: 'פתרו את החידה', build: buildWordRiddlesGrade5 },
+      { id: 'sentenceUnscramble', title: 'משפט מבולבל', emoji: '🔀', desc: 'סדרו את המילים למשפט', type: 'build', build: buildSentenceUnscrambleGrade5 },
     ],
   },
 };
