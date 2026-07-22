@@ -473,6 +473,57 @@ button:focus-visible {
   75% { transform: translateX(6px); }
 }
 
+/* ===== Balloon-pop letter arcade ===== */
+.balloon-area {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #dbeafe, #fef9e7);
+}
+
+.balloon {
+  position: absolute;
+  bottom: -80px;
+  width: 56px;
+  height: 68px;
+  border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  animation-name: balloonRise;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes balloonRise {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-400px); opacity: 0.95; }
+}
+
+.balloon.popped {
+  animation: none !important;
+  transform: scale(1.5) !important;
+  opacity: 0 !important;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .balloon-area { height: 260px; }
+  .balloon { width: 48px; height: 58px; font-size: 1.1rem; }
+  @keyframes balloonRise {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-330px); opacity: 0.95; }
+  }
+}
+
 .option-btn {
   background: #f6f3ff;
   border: 2px solid #e6ddfd;
