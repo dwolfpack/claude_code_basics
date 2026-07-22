@@ -1,80 +1,132 @@
 // Content & question banks for "מסע בעברית".
-// Every question is { emoji, question, options: [correct, ...wrong], answer }
+// Every mc question is { emoji, question, options: [correct, ...wrong], answer, speak? }
 // game.js shuffles options at render time and compares by value, so order here doesn't matter.
 // A question with type:'intro' is a non-scored slide (used to show a reading passage).
+// A category with type:'memory' uses a totally different (non multiple-choice) mini-game.
+// `speak` (when present) is spoken aloud via text-to-speech instead of shown as text.
 
 const ALPHABET = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
 
-function pickDistractors(correct, count) {
-  const pool = ALPHABET.filter(l => l !== correct);
+const LETTER_SPEECH_NAME = {
+  'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא', 'ו': 'וו',
+  'ז': 'זין', 'ח': 'חית', 'ט': 'טית', 'י': 'יוד', 'כ': 'כף', 'ל': 'למד',
+  'מ': 'מם', 'נ': 'נון', 'ס': 'סמך', 'ע': 'עין', 'פ': 'פה', 'צ': 'צדי',
+  'ק': 'קוף', 'ר': 'ריש', 'ש': 'שין', 'ת': 'תו',
+};
+
+function pickDistractors(correct, count, pool) {
+  const source = (pool || ALPHABET).filter(l => l !== correct);
   const picked = [];
-  while (picked.length < count && pool.length) {
-    const i = Math.floor(Math.random() * pool.length);
-    picked.push(pool.splice(i, 1)[0]);
+  while (picked.length < count && source.length) {
+    const i = Math.floor(Math.random() * source.length);
+    picked.push(source.splice(i, 1)[0]);
   }
   return picked;
 }
 
-function buildFirstLetterGrade1() {
-  const words = [
-    { emoji: '🐟', word: 'דג', letter: 'ד' },
-    { emoji: '🐶', word: 'כלב', letter: 'כ' },
-    { emoji: '🐱', word: 'חתול', letter: 'ח' },
-    { emoji: '☀️', word: 'שמש', letter: 'ש' },
-    { emoji: '🏠', word: 'בית', letter: 'ב' },
-    { emoji: '📖', word: 'ספר', letter: 'ס' },
-    { emoji: '🧒', word: 'ילד', letter: 'י' },
-    { emoji: '🌸', word: 'פרח', letter: 'פ' },
-    { emoji: '🍎', word: 'תפוח', letter: 'ת' },
-    { emoji: '🐯', word: 'נמר', letter: 'נ' },
+// ===================== GRADE 1 — no reading required ===================== //
+
+function buildMemoryMatchGrade1() {
+  // Returns the pool of unique symbols; game.js duplicates + shuffles into a board.
+  return ['🐶', '🐱', '🐰', '🦁', '🐼', '🐸', '🦋', '🐢'];
+}
+
+function buildCountingGrade1() {
+  const items = [
+    { emoji: '🍎', count: 3 },
+    { emoji: '⚽', count: 5 },
+    { emoji: '🎈', count: 2 },
+    { emoji: '🐝', count: 4 },
+    { emoji: '🌟', count: 6 },
+    { emoji: '🐠', count: 3 },
+    { emoji: '🍌', count: 7 },
+    { emoji: '🌸', count: 5 },
   ];
-  return words.map(w => ({
-    emoji: w.emoji,
-    question: `באיזו אות מתחילה המילה "${w.word}"?`,
-    options: [w.letter, ...pickDistractors(w.letter, 3)],
-    answer: w.letter,
+  return items.map(it => {
+    const distractors = new Set();
+    while (distractors.size < 3) {
+      const d = Math.max(1, it.count + (Math.floor(Math.random() * 5) - 2));
+      if (d !== it.count) distractors.add(d);
+    }
+    return {
+      emoji: it.emoji.repeat(it.count),
+      question: 'כמה יש כאן?',
+      options: [String(it.count), ...[...distractors].map(String)],
+      answer: String(it.count),
+    };
+  });
+}
+
+function buildShapesColorsGrade1() {
+  const items = [
+    { target: '🔴', options: ['🔴', '🔵', '🟢', '🟡'] },
+    { target: '🟦', options: ['🟦', '🟥', '🟩', '🟨'] },
+    { target: '🔺', options: ['🔺', '🔻', '⭐', '⬛'] },
+    { target: '⭐', options: ['⭐', '🌙', '☀️', '❤️'] },
+    { target: '❤️', options: ['❤️', '💙', '💚', '💛'] },
+    { target: '🟣', options: ['🟣', '🟠', '🔴', '🔵'] },
+    { target: '⬛', options: ['⬛', '⬜', '🟥', '🟦'] },
+    { target: '🔻', options: ['🔻', '🔺', '🔷', '🔶'] },
+  ];
+  return items.map(it => ({
+    emoji: it.target,
+    question: 'מצאו את אותה הצורה',
+    options: it.options,
+    answer: it.target,
   }));
 }
 
-function buildFillWordGrade1() {
-  const items = [
-    { emoji: '🐱', display: '_תוֹל', word: 'חתול', answer: 'ח', options: ['ח', 'כ', 'ה', 'ע'] },
-    { emoji: '🐶', display: 'כ_ב', word: 'כלב', answer: 'ל', options: ['ל', 'ר', 'ד', 'נ'] },
-    { emoji: '🍎', display: '_פּוּחַ', word: 'תפוח', answer: 'ת', options: ['ת', 'ט', 'ד', 'ס'] },
-    { emoji: '📖', display: '_פֶר', word: 'ספר', answer: 'ס', options: ['ס', 'ש', 'ז', 'צ'] },
-    { emoji: '🏠', display: '_יִת', word: 'בית', answer: 'ב', options: ['ב', 'כ', 'פ', 'נ'] },
-    { emoji: '☀️', display: '_מֶש', word: 'שמש', answer: 'ש', options: ['ש', 'ס', 'ע', 'צ'] },
-    { emoji: '🧒', display: '_לֶד', word: 'ילד', answer: 'י', options: ['י', 'ו', 'ה', 'א'] },
-    { emoji: '🐯', display: '_מֵר', word: 'נמר', answer: 'נ', options: ['נ', 'מ', 'ל', 'ר'] },
-  ];
-  return items.map(it => ({
-    emoji: it.emoji,
-    question: `איזו אות חסרה במילה: ${it.display}?`,
-    options: it.options,
-    answer: it.answer,
+function buildLetterSoundGrade1() {
+  const letters = ['א', 'ב', 'ש', 'מ', 'ל', 'ת', 'ר', 'כ'];
+  return letters.map(letter => ({
+    emoji: '🔊',
+    question: 'הקשיבו ומצאו את האות שנשמעה',
+    options: [letter, ...pickDistractors(letter, 3)],
+    answer: letter,
+    speak: LETTER_SPEECH_NAME[letter],
   }));
 }
 
-function buildWordPictureGrade1() {
+function buildWordPictureAudioGrade1() {
   const items = [
-    { emoji: '🐶', answer: 'כלב', options: ['כלב', 'כתוב', 'כדור', 'כתם'] },
-    { emoji: '🐱', answer: 'חתול', options: ['חתול', 'חלון', 'חושך', 'חג'] },
-    { emoji: '☀️', answer: 'שמש', options: ['שמש', 'שמן', 'שיר', 'שק'] },
-    { emoji: '🏠', answer: 'בית', options: ['בית', 'ביצה', 'בד', 'בור'] },
-    { emoji: '📖', answer: 'ספר', options: ['ספר', 'סכין', 'סוס', 'סבון'] },
-    { emoji: '🌸', answer: 'פרח', options: ['פרח', 'פיל', 'פה', 'פחד'] },
-    { emoji: '🍎', answer: 'תפוח', options: ['תפוח', 'תיק', 'תור', 'תא'] },
-    { emoji: '🐯', answer: 'נמר', options: ['נמר', 'נחש', 'נר', 'נמלה'] },
-    { emoji: '⭐', answer: 'כוכב', options: ['כוכב', 'כלב', 'כתר', 'כף'] },
-    { emoji: '🌙', answer: 'ירח', options: ['ירח', 'ים', 'יד', 'ילד'] },
+    { word: 'כלב', answer: '🐶', options: ['🐶', '🐱', '🐰', '🐻'] },
+    { word: 'חתול', answer: '🐱', options: ['🐱', '🐶', '🦊', '🐨'] },
+    { word: 'שמש', answer: '☀️', options: ['☀️', '🌙', '⭐', '☁️'] },
+    { word: 'בית', answer: '🏠', options: ['🏠', '🏫', '🏥', '🚗'] },
+    { word: 'תפוח', answer: '🍎', options: ['🍎', '🍌', '🍇', '🍊'] },
+    { word: 'פרח', answer: '🌸', options: ['🌸', '🌳', '🍄', '🌵'] },
+    { word: 'דג', answer: '🐟', options: ['🐟', '🐬', '🦀', '🐙'] },
+    { word: 'ציפור', answer: '🐦', options: ['🐦', '🦆', '🦉', '🐝'] },
   ];
   return items.map(it => ({
-    emoji: it.emoji,
-    question: 'איזו מילה מתאימה לתמונה?',
+    emoji: '🔊',
+    question: 'הקשיבו למילה ובחרו את התמונה המתאימה',
     options: it.options,
     answer: it.answer,
+    speak: it.word,
   }));
 }
+
+function buildPatternsGrade1() {
+  const items = [
+    { seq: '🔴🔵🔴🔵', next: '🔴', options: ['🔴', '🔵', '🟢', '🟡'] },
+    { seq: '⭐🌙⭐🌙', next: '⭐', options: ['⭐', '🌙', '☀️', '❤️'] },
+    { seq: '🍎🍌🍎🍌', next: '🍎', options: ['🍎', '🍌', '🍇', '🍊'] },
+    { seq: '🔺🔺🔻🔺🔺', next: '🔻', options: ['🔻', '🔺', '⭐', '⬛'] },
+    { seq: '🐱🐶🐱🐶🐱', next: '🐶', options: ['🐶', '🐱', '🐰', '🐻'] },
+    { seq: '🟢🟢🟡🟢🟢', next: '🟡', options: ['🟡', '🟢', '🔵', '🔴'] },
+    { seq: '☀️🌙☀️🌙☀️', next: '🌙', options: ['🌙', '☀️', '⭐', '☁️'] },
+    { seq: '🐸🐸🦋🐸🐸', next: '🦋', options: ['🦋', '🐸', '🐢', '🐰'] },
+  ];
+  return items.map(it => ({
+    emoji: `${it.seq}❓`,
+    question: 'מה מגיע אחר כך ברצף?',
+    options: it.options,
+    answer: it.next,
+  }));
+}
+
+// ===================== GRADE 5 ===================== //
 
 function buildVocabGrade5() {
   const items = [
@@ -148,13 +200,58 @@ function buildReadingGrade5() {
   );
 }
 
+function buildGrammarGrade5() {
+  const items = [
+    { sentence: 'הילד קרא ספר מעניין', ask: 'פועל (מילת פעולה)', answer: 'קרא', options: ['קרא', 'הילד', 'ספר', 'מעניין'] },
+    { sentence: 'הכלב הגדול רץ בגן', ask: 'פועל (מילת פעולה)', answer: 'רץ', options: ['רץ', 'הכלב', 'הגדול', 'בגן'] },
+    { sentence: 'הילדה ציירה ציור צבעוני', ask: 'שם עצם', answer: 'ציור', options: ['ציור', 'הילדה', 'ציירה', 'צבעוני'] },
+    { sentence: 'המורה החכמה הסבירה שיעור', ask: 'שם תואר (מתארת)', answer: 'החכמה', options: ['החכמה', 'המורה', 'הסבירה', 'שיעור'] },
+    { sentence: 'השמש הצהובה זרחה בשמיים', ask: 'שם תואר (מתארת)', answer: 'הצהובה', options: ['הצהובה', 'השמש', 'זרחה', 'בשמיים'] },
+    { sentence: 'הציפור הקטנה עפה גבוה', ask: 'פועל (מילת פעולה)', answer: 'עפה', options: ['עפה', 'הציפור', 'הקטנה', 'גבוה'] },
+    { sentence: 'הילדים שיחקו כדורגל בחצר', ask: 'שם עצם', answer: 'כדורגל', options: ['כדורגל', 'הילדים', 'שיחקו', 'בחצר'] },
+    { sentence: 'האוכל הטעים היה על השולחן', ask: 'שם תואר (מתארת)', answer: 'הטעים', options: ['הטעים', 'האוכל', 'היה', 'השולחן'] },
+    { sentence: 'התלמיד החרוץ סיים שיעורי בית', ask: 'שם תואר (מתארת)', answer: 'החרוץ', options: ['החרוץ', 'התלמיד', 'סיים', 'בית'] },
+    { sentence: 'הדגים השחורים שחו במהירות', ask: 'שם עצם', answer: 'הדגים', options: ['הדגים', 'השחורים', 'שחו', 'במהירות'] },
+  ];
+  return items.map(it => ({
+    emoji: '📝',
+    question: `במשפט "${it.sentence}" - איזו מילה היא ${it.ask}?`,
+    options: it.options,
+    answer: it.answer,
+  }));
+}
+
+function buildVerbTenseGrade5() {
+  const items = [
+    { verb: 'הוא אכל', answer: 'עבר' },
+    { verb: 'הוא אוכל', answer: 'הווה' },
+    { verb: 'הוא יאכל', answer: 'עתיד' },
+    { verb: 'היא כתבה', answer: 'עבר' },
+    { verb: 'היא כותבת', answer: 'הווה' },
+    { verb: 'היא תכתוב', answer: 'עתיד' },
+    { verb: 'הם שיחקו', answer: 'עבר' },
+    { verb: 'הם משחקים', answer: 'הווה' },
+    { verb: 'הם ישחקו', answer: 'עתיד' },
+    { verb: 'אני קראתי', answer: 'עבר' },
+  ];
+  return items.map(it => ({
+    emoji: '⏳',
+    question: `באיזה זמן נכתב הפועל ב-"${it.verb}"?`,
+    options: ['עבר', 'הווה', 'עתיד'],
+    answer: it.answer,
+  }));
+}
+
 const CONTENT = {
   grade1: {
     label: 'כיתה א׳',
     categories: [
-      { id: 'firstLetter', title: 'איזו אות זאת?', emoji: '🔤', desc: 'מצאו את האות הראשונה במילה', build: buildFirstLetterGrade1 },
-      { id: 'fillWord', title: 'השלימו את המילה', emoji: '✏️', desc: 'בחרו את האות החסרה', build: buildFillWordGrade1 },
-      { id: 'wordPicture', title: 'איזו מילה מתאימה?', emoji: '🖼️', desc: 'התאימו מילה לתמונה', build: buildWordPictureGrade1 },
+      { id: 'memoryMatch', title: 'משחק זיכרון', emoji: '🃏', desc: 'מצאו את הזוגות התואמים', type: 'memory', build: buildMemoryMatchGrade1 },
+      { id: 'counting', title: 'ספירה כיפית', emoji: '🔢', desc: 'כמה יש בתמונה?', build: buildCountingGrade1 },
+      { id: 'shapesColors', title: 'צבעים וצורות', emoji: '🔺', desc: 'מצאו את הצורה הזהה', build: buildShapesColorsGrade1 },
+      { id: 'letterSound', title: 'הקשיבו ומצאו אות', emoji: '🔊', desc: 'זהו את האות שנשמעה', build: buildLetterSoundGrade1 },
+      { id: 'wordPictureAudio', title: 'הקשיבו ובחרו תמונה', emoji: '🖼️', desc: 'הקשיבו למילה ובחרו תמונה', build: buildWordPictureAudioGrade1 },
+      { id: 'patterns', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את הרצף', build: buildPatternsGrade1 },
     ],
   },
   grade5: {
@@ -164,6 +261,8 @@ const CONTENT = {
       { id: 'roots', title: 'שורשי מילים', emoji: '🌳', desc: 'מצאו את השורש הנכון', build: buildRootsGrade5 },
       { id: 'reading', title: 'הבנת הנקרא', emoji: '📖', desc: 'קראו קטע וענו על שאלות', build: buildReadingGrade5 },
       { id: 'idioms', title: 'ניבים וביטויים', emoji: '💬', desc: 'מה פירוש הביטוי?', build: buildIdiomsGrade5 },
+      { id: 'grammar', title: 'חלקי דיבור', emoji: '📝', desc: 'פועל, שם עצם או שם תואר?', build: buildGrammarGrade5 },
+      { id: 'verbTense', title: 'זמני פועל', emoji: '⏳', desc: 'עבר, הווה או עתיד?', build: buildVerbTenseGrade5 },
     ],
   },
 };

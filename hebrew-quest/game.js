@@ -15,6 +15,7 @@
     index: 0,
     score: 0,
     locked: false,
+    lastPct: 0,
   };
 
   function showScreen(name) {
@@ -31,23 +32,79 @@
     return a;
   }
 
-  function bestKey(grade, categoryId) {
-    return `hebrewquest_best_${grade}_${categoryId}`;
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // ===== Text-to-speech (best-effort; silently no-ops if unsupported) =====
+  function speakHebrew(text) {
+    if (!text || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'he-IL';
+      utter.rate = 0.85;
+      window.speechSynthesis.speak(utter);
+    } catch (e) { /* audio is a bonus, never block the game on it */ }
   }
 
-  function getBest(grade, categoryId) {
-    return Number(localStorage.getItem(bestKey(grade, categoryId)) || 0);
-  }
+  // ===== localStorage helpers =====
+  function bestKey(grade, categoryId) { return `hebrewquest_best_${grade}_${categoryId}`; }
+  function likeKey(grade, categoryId) { return `hebrewquest_like_${grade}_${categoryId}`; }
+  const TOTAL_LIKES_KEY = 'hebrewquest_total_likes';
 
+  function getBest(grade, categoryId) { return Number(localStorage.getItem(bestKey(grade, categoryId)) || 0); }
   function setBest(grade, categoryId, score) {
-    const cur = getBest(grade, categoryId);
-    if (score > cur) localStorage.setItem(bestKey(grade, categoryId), String(score));
+    if (score > getBest(grade, categoryId)) localStorage.setItem(bestKey(grade, categoryId), String(score));
+  }
+  function isLiked(grade, categoryId) { return localStorage.getItem(likeKey(grade, categoryId)) === '1'; }
+  function getTotalLikes() { return Number(localStorage.getItem(TOTAL_LIKES_KEY) || 0); }
+
+  function refreshTotalLikesBadge() {
+    const total = getTotalLikes();
+    const badge = document.getElementById('total-likes');
+    document.getElementById('total-likes-count').textContent = total;
+    badge.hidden = total === 0;
+  }
+
+  // ===== Confetti =====
+  function launchConfetti(intensity) {
+    const layer = document.getElementById('confetti-layer');
+    const colors = ['#8b5cf6', '#f472b6', '#38bdf8', '#22c55e', '#facc15', '#fb923c'];
+    const count = intensity === 'high' ? 90 : intensity === 'mid' ? 50 : 24;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = pick(colors);
+      piece.style.animationDelay = `${Math.random() * 0.4}s`;
+      piece.style.animationDuration = `${1.6 + Math.random() * 1.2}s`;
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      piece.style.width = piece.style.height = `${6 + Math.random() * 6}px`;
+      layer.appendChild(piece);
+      setTimeout(() => piece.remove(), 3200);
+    }
+  }
+
+  function launchHearts() {
+    const layer = document.getElementById('heart-layer');
+    const icons = ['❤️', '💖', '💗', '⭐'];
+    for (let i = 0; i < 18; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-piece';
+      heart.textContent = pick(icons);
+      heart.style.left = `${40 + Math.random() * 20}vw`;
+      heart.style.animationDelay = `${Math.random() * 0.3}s`;
+      heart.style.animationDuration = `${1.2 + Math.random() * 0.8}s`;
+      heart.style.fontSize = `${18 + Math.random() * 16}px`;
+      layer.appendChild(heart);
+      setTimeout(() => heart.remove(), 2200);
+    }
   }
 
   // ===== Home =====
   document.querySelectorAll('.grade-card').forEach(btn => {
     btn.addEventListener('click', () => openMenu(btn.dataset.grade));
   });
+  refreshTotalLikesBadge();
 
   function openMenu(grade) {
     state.grade = grade;
@@ -72,18 +129,31 @@
   }
 
   document.getElementById('btn-menu-back').addEventListener('click', () => showScreen('home'));
-  document.getElementById('btn-quiz-back').addEventListener('click', () => openMenu(state.grade));
+  document.getElementById('btn-quiz-back').addEventListener('click', () => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    openMenu(state.grade);
+  });
 
-  // ===== Quiz =====
+  // ===== Quiz dispatch =====
   function startQuiz(grade, category) {
     state.grade = grade;
     state.category = category;
+    document.getElementById('quiz-card').classList.remove('memory-mode');
+    showScreen('quiz');
+    if (category.type === 'memory') {
+      startMemoryGame(category);
+    } else {
+      startMcQuiz(category);
+    }
+  }
+
+  // ===== Multiple-choice quiz =====
+  function startMcQuiz(category) {
     state.questions = category.build();
     state.scorableTotal = state.questions.filter(q => q.type !== 'intro').length;
     state.index = 0;
     state.score = 0;
     document.getElementById('q-total').textContent = state.scorableTotal;
-    showScreen('quiz');
     renderQuestion();
   }
 
@@ -120,6 +190,16 @@
     emojiEl.textContent = q.emoji || '';
     questionEl.textContent = q.question;
 
+    if (q.speak) {
+      const replayBtn = document.createElement('button');
+      replayBtn.className = 'replay-btn';
+      replayBtn.type = 'button';
+      replayBtn.textContent = '🔊 השמיעו שוב';
+      replayBtn.addEventListener('click', () => speakHebrew(q.speak));
+      questionEl.after(replayBtn);
+      setTimeout(() => speakHebrew(q.speak), 250);
+    }
+
     shuffled(q.options).forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
@@ -153,37 +233,137 @@
     }
 
     document.getElementById('q-score').textContent = state.score;
+    const replay = document.querySelector('.replay-btn');
+    if (replay) replay.remove();
     setTimeout(nextQuestion, 1100);
   }
-
-  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   function nextQuestion() {
     state.index++;
     if (state.index >= state.questions.length) {
-      finishQuiz();
+      finishQuiz(state.score, state.scorableTotal);
     } else {
       renderQuestion();
     }
   }
 
-  function finishQuiz() {
-    document.getElementById('progress-fill').style.width = '100%';
-    setBest(state.grade, state.category.id, state.score);
-    showResults();
+  // ===== Memory match minigame =====
+  const memory = { flipped: [], matched: 0, pairs: 0, mistakes: 0, lock: false };
+
+  function startMemoryGame(category) {
+    const symbols = category.build();
+    memory.pairs = symbols.length;
+    memory.matched = 0;
+    memory.mistakes = 0;
+    memory.flipped = [];
+    memory.lock = false;
+
+    document.getElementById('q-total').textContent = memory.pairs;
+    document.getElementById('q-index').textContent = 0;
+    document.getElementById('q-score').textContent = 0;
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('quiz-feedback').textContent = '';
+    document.getElementById('quiz-feedback').className = 'quiz-feedback';
+
+    const card = document.getElementById('quiz-card');
+    card.classList.add('memory-mode');
+    const emojiEl = document.getElementById('quiz-emoji');
+    const questionEl = document.getElementById('quiz-question');
+    const optionsEl = document.getElementById('quiz-options');
+    emojiEl.textContent = '';
+    questionEl.classList.remove('passage');
+    questionEl.textContent = 'מצאו את כל הזוגות!';
+    optionsEl.innerHTML = '';
+
+    const board = document.createElement('div');
+    board.className = 'memory-board';
+    const deck = shuffled([...symbols, ...symbols]);
+    deck.forEach((symbol, i) => {
+      const cardBtn = document.createElement('button');
+      cardBtn.className = 'memory-card';
+      cardBtn.dataset.symbol = symbol;
+      cardBtn.dataset.index = i;
+      cardBtn.innerHTML = '<span class="memory-face">❔</span>';
+      cardBtn.addEventListener('click', () => flipMemoryCard(cardBtn));
+      board.appendChild(cardBtn);
+    });
+    optionsEl.appendChild(board);
+  }
+
+  function flipMemoryCard(cardBtn) {
+    if (memory.lock) return;
+    if (cardBtn.classList.contains('flipped') || cardBtn.classList.contains('matched')) return;
+
+    cardBtn.classList.add('flipped');
+    cardBtn.querySelector('.memory-face').textContent = cardBtn.dataset.symbol;
+    memory.flipped.push(cardBtn);
+
+    if (memory.flipped.length < 2) return;
+
+    memory.lock = true;
+    const [a, b] = memory.flipped;
+    if (a.dataset.symbol === b.dataset.symbol) {
+      setTimeout(() => {
+        a.classList.add('matched');
+        b.classList.add('matched');
+        memory.matched++;
+        memory.flipped = [];
+        memory.lock = false;
+        document.getElementById('q-index').textContent = memory.matched;
+        document.getElementById('q-score').textContent = memory.matched;
+        document.getElementById('progress-fill').style.width = `${(memory.matched / memory.pairs) * 100}%`;
+        if (memory.matched === memory.pairs) {
+          setTimeout(() => finishQuiz(memory.pairs, memory.pairs, memory.mistakes), 500);
+        }
+      }, 400);
+    } else {
+      memory.mistakes++;
+      setTimeout(() => {
+        a.classList.remove('flipped');
+        b.classList.remove('flipped');
+        a.querySelector('.memory-face').textContent = '❔';
+        b.querySelector('.memory-face').textContent = '❔';
+        memory.flipped = [];
+        memory.lock = false;
+      }, 700);
+    }
   }
 
   // ===== Results =====
-  function showResults() {
-    const total = state.scorableTotal;
-    const score = state.score;
-    const pct = total ? score / total : 0;
+  function finishQuiz(score, total, mistakes) {
+    document.getElementById('progress-fill').style.width = '100%';
+    setBest(state.grade, state.category.id, score);
+    showResults(score, total, mistakes);
+  }
+
+  function showResults(score, total, mistakes) {
+    let pct = total ? score / total : 0;
+    if (typeof mistakes === 'number') {
+      // Memory game: always "completes", so grade by efficiency instead.
+      pct = mistakes <= 2 ? 1 : mistakes <= 5 ? 0.75 : mistakes <= 9 ? 0.5 : 0.25;
+    }
+    state.lastPct = pct;
 
     document.getElementById('results-score').textContent = `${score} / ${total}`;
 
-    const starsEl = document.getElementById('results-stars');
     const starCount = pct >= 0.9 ? 3 : pct >= 0.6 ? 2 : pct >= 0.3 ? 1 : 0;
-    starsEl.textContent = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
+    const starsEl = document.getElementById('results-stars');
+    starsEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const span = document.createElement('span');
+      span.className = 'star-slot';
+      span.textContent = i < starCount ? '⭐' : '☆';
+      starsEl.appendChild(span);
+    }
+    // Sequential pop-in animation for earned stars.
+    const slots = starsEl.querySelectorAll('.star-slot');
+    slots.forEach((slot, i) => {
+      if (i < starCount) {
+        slot.classList.remove('pop');
+        void slot.offsetWidth;
+        setTimeout(() => slot.classList.add('pop'), i * 220);
+      }
+    });
 
     const titleEl = document.getElementById('results-title');
     const emojiEl = document.getElementById('results-emoji');
@@ -207,7 +387,39 @@
       msgEl.textContent = 'לא נורא! תרגול עושה מושלם, קדימה עוד סיבוב.';
     }
 
+    // Reward: confetti scaled to performance.
+    const intensity = pct >= 0.9 ? 'high' : pct >= 0.6 ? 'mid' : pct > 0 ? 'low' : null;
+    if (intensity) setTimeout(() => launchConfetti(intensity), 150);
+
+    setupLikeButton();
     showScreen('results');
+  }
+
+  function setupLikeButton() {
+    const btn = document.getElementById('btn-like');
+    const icon = btn.querySelector('.like-icon');
+    const liked = isLiked(state.grade, state.category.id);
+    btn.classList.toggle('liked', liked);
+    icon.textContent = liked ? '❤️' : '🤍';
+
+    btn.onclick = () => {
+      const key = likeKey(state.grade, state.category.id);
+      const currentlyLiked = localStorage.getItem(key) === '1';
+      const total = getTotalLikes();
+      if (currentlyLiked) {
+        localStorage.setItem(key, '0');
+        localStorage.setItem(TOTAL_LIKES_KEY, String(Math.max(0, total - 1)));
+        btn.classList.remove('liked');
+        icon.textContent = '🤍';
+      } else {
+        localStorage.setItem(key, '1');
+        localStorage.setItem(TOTAL_LIKES_KEY, String(total + 1));
+        btn.classList.add('liked');
+        icon.textContent = '❤️';
+        launchHearts();
+      }
+      refreshTotalLikesBadge();
+    };
   }
 
   document.getElementById('btn-play-again').addEventListener('click', () => startQuiz(state.grade, state.category));

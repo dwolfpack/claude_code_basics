@@ -21,6 +21,7 @@
           <div class="brand-emoji">📚✨</div>
           <h1>מסע בעברית</h1>
           <p class="tagline">משחקי קריאה, מילים ודקדוק - תרגלו וצברו כוכבים!</p>
+          <div class="total-likes" id="total-likes" hidden>❤️ <span id="total-likes-count">0</span> לייקים</div>
         </div>
 
         <div class="grade-cards">
@@ -77,6 +78,10 @@
         <div class="results-score" id="results-score">0 / 0</div>
         <div class="results-stars" id="results-stars"></div>
         <p class="results-msg" id="results-msg"></p>
+        <button class="like-btn" id="btn-like">
+          <span class="like-icon">🤍</span>
+          <span class="like-text">אהבתי!</span>
+        </button>
         <div class="results-btns">
           <button class="btn-primary" id="btn-play-again">שחקו שוב</button>
           <button class="btn-secondary" id="btn-back-menu">תפריט המשחקים</button>
@@ -85,6 +90,9 @@
     </section>
 
   </div>
+
+  <div id="confetti-layer" aria-hidden="true"></div>
+  <div id="heart-layer" aria-hidden="true"></div>
 
   <script src="content.js"></script>
   <script src="game.js"></script>
