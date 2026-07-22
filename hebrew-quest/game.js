@@ -288,6 +288,8 @@
     showScreen('quiz');
     if (category.type === 'memory') {
       startMemoryGame(category);
+    } else if (category.type === 'build') {
+      startBuildGame(category);
     } else {
       startMcQuiz(category);
     }
@@ -320,6 +322,9 @@
     const questionEl = document.getElementById('quiz-question');
     const optionsEl = document.getElementById('quiz-options');
     optionsEl.innerHTML = '';
+    // The replay button lives as a sibling of questionEl (outside optionsEl), so it
+    // survives an early exit (back/home mid-question) unless removed explicitly here.
+    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
 
     if (q.type === 'intro') {
       emojiEl.textContent = q.emoji;
@@ -487,6 +492,114 @@
         memory.flipped = [];
         memory.lock = false;
       }, 700);
+    }
+  }
+
+  // ===== Build-a-sequence minigame (build-a-word / sentence unscramble) =====
+  // Each puzzle: { prompt?, instruction, tokens: [...], speak? }. Tokens are
+  // tapped in the correct order to fill empty slots. Works for both single
+  // Hebrew letters (grade 1, spelling a word) and whole words (grade 5,
+  // reordering a sentence) - the engine doesn't care what a token represents.
+  const build = { puzzles: [], index: 0, mistakes: 0, slotIndex: 0, tokens: [] };
+
+  function startBuildGame(category) {
+    build.puzzles = category.build();
+    build.index = 0;
+    build.mistakes = 0;
+    document.getElementById('q-total').textContent = build.puzzles.length;
+    renderBuildPuzzle();
+  }
+
+  function renderBuildPuzzle() {
+    const puzzle = build.puzzles[build.index];
+    build.slotIndex = 0;
+    build.tokens = puzzle.tokens;
+
+    document.getElementById('q-index').textContent = build.index;
+    document.getElementById('q-score').textContent = build.index;
+    document.getElementById('progress-fill').style.width = `${(build.index / build.puzzles.length) * 100}%`;
+    if (state.grade === 'grade1') renderProgressDots(build.index, build.puzzles.length);
+
+    const emojiEl = document.getElementById('quiz-emoji');
+    const questionEl = document.getElementById('quiz-question');
+    const optionsEl = document.getElementById('quiz-options');
+    emojiEl.textContent = puzzle.prompt || '';
+    questionEl.classList.remove('passage');
+    questionEl.textContent = puzzle.instruction;
+    optionsEl.innerHTML = '';
+    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
+
+    if (puzzle.speak) {
+      const replayBtn = document.createElement('button');
+      replayBtn.className = 'replay-btn';
+      replayBtn.type = 'button';
+      replayBtn.setAttribute('aria-label', 'השמיעו שוב');
+      replayBtn.textContent = '🔊';
+      replayBtn.addEventListener('click', () => speakHebrew(puzzle.speak));
+      questionEl.after(replayBtn);
+      setTimeout(() => speakHebrew(puzzle.speak), 250);
+    }
+
+    const area = document.createElement('div');
+    area.className = 'build-area';
+
+    const slotsRow = document.createElement('div');
+    slotsRow.className = 'build-slots';
+    puzzle.tokens.forEach(() => slotsRow.appendChild(document.createElement('div')).className = 'build-slot');
+
+    const tilesRow = document.createElement('div');
+    tilesRow.className = 'build-tiles';
+    shuffled(puzzle.tokens.map((value, key) => ({ value, key }))).forEach(tok => {
+      const tile = document.createElement('button');
+      tile.className = 'build-tile';
+      tile.type = 'button';
+      tile.textContent = tok.value;
+      tile.addEventListener('click', () => handleBuildTileTap(tile, tok.value, puzzle));
+      tilesRow.appendChild(tile);
+    });
+
+    area.appendChild(slotsRow);
+    area.appendChild(tilesRow);
+    optionsEl.appendChild(area);
+  }
+
+  function handleBuildTileTap(tile, value, puzzle) {
+    if (tile.classList.contains('used')) return;
+    const expected = build.tokens[build.slotIndex];
+
+    if (value === expected) {
+      tile.classList.add('used');
+      const slots = document.querySelectorAll('.build-slot');
+      slots[build.slotIndex].textContent = value;
+      slots[build.slotIndex].classList.add('filled');
+      build.slotIndex++;
+      vibrate(20);
+      if (LETTER_SPEECH_NAME[value]) speakHebrew(LETTER_SPEECH_NAME[value]);
+
+      if (build.slotIndex === build.tokens.length) {
+        playDing();
+        reactMascot('happy');
+        const replay = document.querySelector('.replay-btn');
+        if (replay) replay.remove();
+        if (puzzle.speak) setTimeout(() => speakHebrew(puzzle.speak), 350);
+        setTimeout(nextBuildPuzzle, 1500);
+      }
+    } else {
+      build.mistakes++;
+      playBuzz();
+      reactMascot('sad');
+      vibrate([20, 40, 20]);
+      tile.classList.add('wrong');
+      setTimeout(() => tile.classList.remove('wrong'), 400);
+    }
+  }
+
+  function nextBuildPuzzle() {
+    build.index++;
+    if (build.index >= build.puzzles.length) {
+      finishQuiz(build.puzzles.length, build.puzzles.length, build.mistakes);
+    } else {
+      renderBuildPuzzle();
     }
   }
 
