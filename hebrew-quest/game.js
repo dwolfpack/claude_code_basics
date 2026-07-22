@@ -44,12 +44,20 @@
   // ===== Text-to-speech (best-effort; silently no-ops if unsupported) =====
   function speakHebrew(text) {
     if (!text || !('speechSynthesis' in window)) return;
+    unlockAudioOnce();
     const say = () => {
       try {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'he-IL';
         utter.rate = 0.85;
+        const setSpeaking = (on) => {
+          const btn = document.querySelector('.replay-btn');
+          if (btn) btn.classList.toggle('speaking', on);
+        };
+        utter.onstart = () => setSpeaking(true);
+        utter.onend = () => setSpeaking(false);
+        utter.onerror = () => setSpeaking(false);
         window.speechSynthesis.speak(utter);
       } catch (e) { /* audio is a bonus, never block the game on it */ }
     };
@@ -78,6 +86,7 @@
   }
 
   function playTone(freq, duration, type, delay, gainLevel) {
+    unlockAudioOnce();
     const ctx = getAudioCtx();
     if (!ctx) return;
     const schedule = () => {
@@ -102,9 +111,15 @@
     }
   }
 
-  // Unlock both the AudioContext and speech synthesis on the very first tap,
-  // since iOS/Safari require both to be started from inside a real user gesture.
+  // Unlock both the AudioContext and speech synthesis from the first real user
+  // gesture, since iOS/Safari require both to start from inside one. Guarded so
+  // the (cheap but not free) unlock work only ever runs once, even though it's
+  // wired to several event types and also called defensively from every sound
+  // function in case the gesture listeners below somehow miss the first tap.
+  let audioUnlocked = false;
   function unlockAudioOnce() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
     const ctx = getAudioCtx();
     if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
     if ('speechSynthesis' in window) {
@@ -115,7 +130,9 @@
       } catch (e) { /* ignore */ }
     }
   }
-  document.addEventListener('pointerdown', unlockAudioOnce, { once: true });
+  ['pointerdown', 'touchstart', 'mousedown', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, unlockAudioOnce, { once: true, passive: true });
+  });
 
   function playDing() {
     playTone(880, 0.12, 'sine', 0, 0.16);
