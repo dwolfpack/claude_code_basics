@@ -254,10 +254,12 @@
   document.getElementById('btn-menu-back').addEventListener('click', () => showScreen('home'));
   document.getElementById('btn-quiz-back').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
+    stopBalloonGame();
     openMenu(state.grade);
   });
   document.getElementById('btn-home-fab').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
+    stopBalloonGame();
     showScreen('home');
   });
 
@@ -280,6 +282,7 @@
 
   // ===== Quiz dispatch =====
   function startQuiz(grade, category) {
+    stopBalloonGame();
     state.grade = grade;
     state.category = category;
     document.getElementById('quiz-card').classList.remove('memory-mode');
@@ -290,6 +293,8 @@
       startMemoryGame(category);
     } else if (category.type === 'build') {
       startBuildGame(category);
+    } else if (category.type === 'balloon') {
+      startBalloonGame(category);
     } else {
       startMcQuiz(category);
     }
@@ -600,6 +605,123 @@
       finishQuiz(build.puzzles.length, build.puzzles.length, build.mistakes);
     } else {
       renderBuildPuzzle();
+    }
+  }
+
+  // ===== Balloon-pop letter arcade =====
+  // Balloons spawn on a timer and float upward; tap the one matching the
+  // announced target letter. Runs a real setInterval loop, so every exit path
+  // (back, home, starting a different game) must call stopBalloonGame() or the
+  // spawner keeps firing into a screen the player has already left.
+  const BALLOON_GOAL = 8;
+  const BALLOON_COLORS = ['#f472b6', '#8b5cf6', '#38bdf8', '#22c55e', '#facc15', '#fb923c'];
+  const balloon = { pool: [], target: null, score: 0, mistakes: 0, spawnInterval: null, timeouts: [], active: false };
+
+  function stopBalloonGame() {
+    balloon.active = false;
+    if (balloon.spawnInterval) { clearInterval(balloon.spawnInterval); balloon.spawnInterval = null; }
+    balloon.timeouts.forEach(t => clearTimeout(t));
+    balloon.timeouts = [];
+    // A balloon mid-flight when the player leaves never fires 'animationend' (it's
+    // now inside a display:none screen), so its own cleanup listener never runs -
+    // remove any leftovers immediately instead of leaving them for the next
+    // game's innerHTML reset to catch.
+    document.querySelectorAll('.balloon').forEach(el => el.remove());
+  }
+
+  function startBalloonGame(category) {
+    stopBalloonGame();
+    balloon.pool = category.build();
+    balloon.score = 0;
+    balloon.mistakes = 0;
+    balloon.active = true;
+    document.getElementById('q-total').textContent = BALLOON_GOAL;
+
+    const optionsEl = document.getElementById('quiz-options');
+    optionsEl.innerHTML = '';
+    const area = document.createElement('div');
+    area.className = 'balloon-area';
+    area.id = 'balloon-area';
+    optionsEl.appendChild(area);
+
+    pickNewBalloonTarget();
+    updateBalloonTarget();
+    updateBalloonHud();
+    balloon.spawnInterval = setInterval(spawnBalloon, 1100);
+  }
+
+  function pickNewBalloonTarget() {
+    const others = balloon.pool.filter(l => l !== balloon.target);
+    balloon.target = pick(others.length ? others : balloon.pool);
+  }
+
+  function updateBalloonHud() {
+    document.getElementById('q-index').textContent = balloon.score;
+    document.getElementById('q-score').textContent = balloon.score;
+    document.getElementById('progress-fill').style.width = `${(balloon.score / BALLOON_GOAL) * 100}%`;
+    if (state.grade === 'grade1') renderProgressDots(balloon.score, BALLOON_GOAL);
+  }
+
+  function updateBalloonTarget() {
+    const emojiEl = document.getElementById('quiz-emoji');
+    const questionEl = document.getElementById('quiz-question');
+    emojiEl.textContent = balloon.target;
+    questionEl.classList.remove('passage');
+    questionEl.textContent = 'לחצו על הבלון עם האות הזו!';
+    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
+
+    const replayBtn = document.createElement('button');
+    replayBtn.className = 'replay-btn';
+    replayBtn.type = 'button';
+    replayBtn.setAttribute('aria-label', 'השמיעו שוב');
+    replayBtn.textContent = '🔊';
+    replayBtn.addEventListener('click', () => speakHebrew(LETTER_SPEECH_NAME[balloon.target]));
+    questionEl.after(replayBtn);
+    speakHebrew(LETTER_SPEECH_NAME[balloon.target]);
+  }
+
+  function spawnBalloon() {
+    if (!balloon.active) return;
+    const area = document.getElementById('balloon-area');
+    if (!area) { stopBalloonGame(); return; }
+
+    // Weighted toward the target letter so kids aren't waiting too long between chances.
+    const letter = Math.random() < 0.4 ? balloon.target : pick(balloon.pool);
+    const el = document.createElement('button');
+    el.className = 'balloon';
+    el.type = 'button';
+    el.textContent = letter;
+    el.style.left = `${5 + Math.random() * 78}%`;
+    el.style.background = pick(BALLOON_COLORS);
+    el.style.animationDuration = `${5 + Math.random() * 2.5}s`;
+    el.addEventListener('click', () => handleBalloonTap(el, letter));
+    el.addEventListener('animationend', () => el.remove());
+    area.appendChild(el);
+  }
+
+  function handleBalloonTap(el, letter) {
+    if (!balloon.active || el.classList.contains('popped')) return;
+    el.classList.add('popped');
+    balloon.timeouts.push(setTimeout(() => el.remove(), 260));
+
+    if (letter === balloon.target) {
+      balloon.score++;
+      vibrate(25);
+      playDing();
+      reactMascot('happy');
+      if (balloon.score >= BALLOON_GOAL) {
+        stopBalloonGame();
+        balloon.timeouts.push(setTimeout(() => finishQuiz(BALLOON_GOAL, BALLOON_GOAL, balloon.mistakes), 500));
+      } else {
+        pickNewBalloonTarget();
+        updateBalloonTarget();
+        updateBalloonHud();
+      }
+    } else {
+      balloon.mistakes++;
+      vibrate([20, 40, 20]);
+      playBuzz();
+      reactMascot('sad');
     }
   }
 

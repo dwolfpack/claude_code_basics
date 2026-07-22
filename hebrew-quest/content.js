@@ -161,6 +161,12 @@ function buildLetterPatternGrade1() {
   }));
 }
 
+function buildBalloonPopGrade1() {
+  // Returns the pool of letters the balloon game samples from; game.js drives
+  // the actual real-time spawn/tap loop.
+  return ['א', 'ב', 'ש', 'מ', 'ל', 'ת', 'ר', 'כ'];
+}
+
 function buildBuildWordGrade1() {
   // Tap the letters in order to spell the word shown as a picture. Kept to
   // short 2-letter words so it stays approachable for pre-readers.
@@ -383,6 +389,7 @@ const CONTENT = {
       { id: 'letterPattern', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את רצף האותיות', build: buildLetterPatternGrade1 },
       { id: 'rhymeMatch', title: 'מילים מתחרזות', emoji: '🎵', desc: 'הקשיבו ומצאו מילה מתחרזת', build: buildRhymeMatchGrade1 },
       { id: 'buildWord', title: 'בונים מילה', emoji: '🧱', desc: 'הרכיבו את המילה מהאותיות', type: 'build', build: buildBuildWordGrade1 },
+      { id: 'balloonPop', title: 'בלוני אותיות', emoji: '🎈', desc: 'תפסו את הבלון עם האות הנכונה', type: 'balloon', build: buildBalloonPopGrade1 },
     ],
   },
   grade5: {
