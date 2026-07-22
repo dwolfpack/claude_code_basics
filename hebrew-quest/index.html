@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="משחק עברית לילדים - תרגול קריאה, אוצר מילים ודקדוק לכיתה א' וכיתה ה'." />
+  <title>מסע בעברית - משחק לימוד עברית לילדים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- ===== Home screen: choose grade ===== -->
+    <section id="screen-home" class="screen active">
+      <div class="home-wrap">
+        <div class="brand">
+          <div class="brand-emoji">📚✨</div>
+          <h1>מסע בעברית</h1>
+          <p class="tagline">משחקי קריאה, מילים ודקדוק - תרגלו וצברו כוכבים!</p>
+        </div>
+
+        <div class="grade-cards">
+          <button class="grade-card grade1" data-grade="grade1">
+            <div class="grade-emoji">🐣</div>
+            <div class="grade-title">כיתה א׳</div>
+            <div class="grade-desc">אותיות, מילים ותמונות</div>
+          </button>
+          <button class="grade-card grade5" data-grade="grade5">
+            <div class="grade-emoji">🦉</div>
+            <div class="grade-title">כיתה ה׳</div>
+            <div class="grade-desc">אוצר מילים, שורשים והבנת הנקרא</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Category menu for a grade ===== -->
+    <section id="screen-menu" class="screen">
+      <div class="menu-wrap">
+        <button class="back-btn" id="btn-menu-back">→ חזרה</button>
+        <h2 id="menu-title">בחרו משחק</h2>
+        <div class="category-grid" id="category-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Quiz screen ===== -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-wrap">
+        <div class="quiz-top">
+          <button class="back-btn" id="btn-quiz-back">→ יציאה</button>
+          <div class="quiz-progress">
+            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="progress-label"><span id="q-index">1</span> / <span id="q-total">10</span></div>
+          </div>
+          <div class="quiz-score">⭐ <span id="q-score">0</span></div>
+        </div>
+
+        <div class="quiz-card" id="quiz-card">
+          <div class="quiz-emoji" id="quiz-emoji"></div>
+          <div class="quiz-question" id="quiz-question"></div>
+          <div class="quiz-options" id="quiz-options"></div>
+        </div>
+
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+      </div>
+    </section>
+
+    <!-- ===== Results screen ===== -->
+    <section id="screen-results" class="screen">
+      <div class="results-wrap">
+        <div class="results-emoji" id="results-emoji">🎉</div>
+        <h2 id="results-title">כל הכבוד!</h2>
+        <div class="results-score" id="results-score">0 / 0</div>
+        <div class="results-stars" id="results-stars"></div>
+        <p class="results-msg" id="results-msg"></p>
+        <div class="results-btns">
+          <button class="btn-primary" id="btn-play-again">שחקו שוב</button>
+          <button class="btn-secondary" id="btn-back-menu">תפריט המשחקים</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="content.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
