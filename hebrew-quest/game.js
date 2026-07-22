@@ -34,6 +34,11 @@
 
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+  // ===== Haptics (mobile-only, silently no-ops elsewhere) =====
+  function vibrate(pattern) {
+    if ('vibrate' in navigator) { try { navigator.vibrate(pattern); } catch (e) { /* ignore */ } }
+  }
+
   // ===== Text-to-speech (best-effort; silently no-ops if unsupported) =====
   function speakHebrew(text) {
     if (!text || !('speechSynthesis' in window)) return;
@@ -226,10 +231,12 @@
       btn.classList.add('correct');
       feedback.textContent = pick(['כל הכבוד! 🎉', 'מעולה! ✨', 'נכון מאוד! 👏', 'איזה יופי! 🌟']);
       feedback.className = 'quiz-feedback good';
+      vibrate(30);
     } else {
       btn.classList.add('wrong');
       feedback.textContent = pick(['כמעט! נסו שוב בפעם הבאה 💪', 'לא נורא, ממשיכים! 🙂', 'התשובה הנכונה מסומנת למעלה 👆']);
       feedback.className = 'quiz-feedback bad';
+      vibrate([20, 40, 20]);
     }
 
     document.getElementById('q-score').textContent = state.score;
@@ -303,6 +310,7 @@
     memory.lock = true;
     const [a, b] = memory.flipped;
     if (a.dataset.symbol === b.dataset.symbol) {
+      vibrate(30);
       setTimeout(() => {
         a.classList.add('matched');
         b.classList.add('matched');
