@@ -107,6 +107,51 @@ function buildWordPictureAudioGrade1() {
   }));
 }
 
+function buildLetterAnimalGrade1() {
+  // Each entry: a target letter, the correct animal (whose Hebrew name starts
+  // with it), and 3 distractor animals whose names start with other letters.
+  // Verified so exactly one option matches the target letter.
+  const items = [
+    { letter: 'כ', correct: '🐶', options: ['🐶', '🦁', '🐘', '🐍'] }, // כלב
+    { letter: 'ח', correct: '🐱', options: ['🐱', '🐴', '🦆', '🦉'] }, // חתול
+    { letter: 'פ', correct: '🐘', options: ['🐘', '🐱', '🐭', '🐢'] }, // פיל
+    { letter: 'א', correct: '🦁', options: ['🦁', '🐶', '🐟', '🦊'] }, // אריה
+    { letter: 'ד', correct: '🐻', options: ['🐻', '🐰', '🐵', '🦓'] }, // דוב
+    { letter: 'נ', correct: '🐍', options: ['🐍', '🐘', '🐑', '🦆'] }, // נחש
+    { letter: 'ש', correct: '🦊', options: ['🦊', '🐷', '🐢', '🐭'] }, // שועל
+    { letter: 'ז', correct: '🦓', options: ['🦓', '🐯', '🦜', '🐴'] }, // זברה
+    { letter: 'ת', correct: '🦜', options: ['🦜', '🐘', '🐍', '🐱'] }, // תוכי
+    { letter: 'ק', correct: '🐵', options: ['🐵', '🦋', '🐺', '🐑'] }, // קוף
+  ];
+  return items.map(it => ({
+    emoji: it.letter,
+    question: 'איזו חיה מתחילה באות הזו?',
+    options: it.options,
+    answer: it.correct,
+  }));
+}
+
+function buildLetterOrderGrade1() {
+  const items = [
+    { seq: 'א ב ג', next: 'ד' },
+    { seq: 'ב ג ד', next: 'ה' },
+    { seq: 'ד ה ו', next: 'ז' },
+    { seq: 'ו ז ח', next: 'ט' },
+    { seq: 'ח ט י', next: 'כ' },
+    { seq: 'י כ ל', next: 'מ' },
+    { seq: 'ל מ נ', next: 'ס' },
+    { seq: 'נ ס ע', next: 'פ' },
+    { seq: 'ע פ צ', next: 'ק' },
+    { seq: 'צ ק ר', next: 'ש' },
+  ];
+  return items.map(it => ({
+    emoji: `${it.seq} ❓`,
+    question: 'איזו אות מגיעה אחר כך באלף-בית?',
+    options: [it.next, ...pickDistractors(it.next, 3)],
+    answer: it.next,
+  }));
+}
+
 function buildPatternsGrade1() {
   const items = [
     { seq: '🔴🔵🔴🔵', next: '🔴', options: ['🔴', '🔵', '🟢', '🟡'] },
@@ -251,6 +296,8 @@ const CONTENT = {
       { id: 'shapesColors', title: 'צבעים וצורות', emoji: '🔺', desc: 'מצאו את הצורה הזהה', build: buildShapesColorsGrade1 },
       { id: 'letterSound', title: 'הקשיבו ומצאו אות', emoji: '🔊', desc: 'זהו את האות שנשמעה', build: buildLetterSoundGrade1 },
       { id: 'wordPictureAudio', title: 'הקשיבו ובחרו תמונה', emoji: '🖼️', desc: 'הקשיבו למילה ובחרו תמונה', build: buildWordPictureAudioGrade1 },
+      { id: 'letterAnimal', title: 'אות וחיה', emoji: '🦁', desc: 'איזו חיה מתחילה באות?', build: buildLetterAnimalGrade1 },
+      { id: 'letterOrder', title: 'סדר האותיות', emoji: '🔡', desc: 'מה האות הבאה באלף-בית?', build: buildLetterOrderGrade1 },
       { id: 'patterns', title: 'מה הבא ברצף?', emoji: '🧩', desc: 'השלימו את הרצף', build: buildPatternsGrade1 },
     ],
   },

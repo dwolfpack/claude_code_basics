@@ -44,42 +44,78 @@
   // ===== Text-to-speech (best-effort; silently no-ops if unsupported) =====
   function speakHebrew(text) {
     if (!text || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'he-IL';
-      utter.rate = 0.85;
-      window.speechSynthesis.speak(utter);
-    } catch (e) { /* audio is a bonus, never block the game on it */ }
+    const say = () => {
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'he-IL';
+        utter.rate = 0.85;
+        window.speechSynthesis.speak(utter);
+      } catch (e) { /* audio is a bonus, never block the game on it */ }
+    };
+    // Voices load asynchronously on first use in some browsers; speaking too
+    // early silently produces no audio, so wait for the list once if it's empty.
+    if (window.speechSynthesis.getVoices().length === 0) {
+      let said = false;
+      const sayOnce = () => { if (!said) { said = true; say(); } };
+      window.speechSynthesis.addEventListener('voiceschanged', sayOnce, { once: true });
+      setTimeout(sayOnce, 300); // fallback if voiceschanged never fires
+    } else {
+      say();
+    }
   }
 
   // ===== Sound effects: tiny synthesized tones, no external assets =====
+  // Bug fix: scheduling a tone on a still-suspended AudioContext plays nothing on
+  // most mobile browsers - resume() is async, so we must wait for it before we
+  // schedule anything instead of firing resume() and continuing immediately.
   let audioCtx = null;
   function getAudioCtx() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     if (!audioCtx) audioCtx = new AC();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
 
   function playTone(freq, duration, type, delay, gainLevel) {
     const ctx = getAudioCtx();
     if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = type || 'sine';
-      osc.frequency.value = freq;
-      osc.connect(g);
-      g.connect(ctx.destination);
-      const start = ctx.currentTime + (delay || 0);
-      g.gain.setValueAtTime(gainLevel || 0.15, start);
-      g.gain.exponentialRampToValueAtTime(0.001, start + duration);
-      osc.start(start);
-      osc.stop(start + duration + 0.02);
-    } catch (e) { /* audio is a bonus, never block the game on it */ }
+    const schedule = () => {
+      try {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        osc.connect(g);
+        g.connect(ctx.destination);
+        const start = ctx.currentTime + (delay || 0);
+        g.gain.setValueAtTime(gainLevel || 0.15, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.start(start);
+        osc.stop(start + duration + 0.02);
+      } catch (e) { /* audio is a bonus, never block the game on it */ }
+    };
+    if (ctx.state === 'running') {
+      schedule();
+    } else {
+      ctx.resume().then(schedule).catch(() => { /* audio is a bonus, never block the game on it */ });
+    }
   }
+
+  // Unlock both the AudioContext and speech synthesis on the very first tap,
+  // since iOS/Safari require both to be started from inside a real user gesture.
+  function unlockAudioOnce() {
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+    if ('speechSynthesis' in window) {
+      try {
+        const primer = new SpeechSynthesisUtterance(' ');
+        primer.volume = 0;
+        window.speechSynthesis.speak(primer);
+      } catch (e) { /* ignore */ }
+    }
+  }
+  document.addEventListener('pointerdown', unlockAudioOnce, { once: true });
 
   function playDing() {
     playTone(880, 0.12, 'sine', 0, 0.16);
