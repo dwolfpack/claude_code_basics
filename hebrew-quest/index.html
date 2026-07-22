@@ -7,7 +7,11 @@
   <meta name="theme-color" content="#fef6e4" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="מסע בעברית" />
   <title>מסע בעברית - משחק לימוד עברית לילדים</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap" />
@@ -58,12 +62,14 @@
           <button class="back-btn" id="btn-quiz-back">→ יציאה</button>
           <div class="quiz-progress">
             <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-            <div class="progress-label"><span id="q-index">1</span> / <span id="q-total">10</span></div>
+            <div class="progress-label" id="progress-fraction"><span id="q-index">1</span> / <span id="q-total">10</span></div>
+            <div class="progress-dots" id="progress-dots" hidden></div>
           </div>
           <div class="quiz-score">⭐ <span id="q-score">0</span></div>
         </div>
 
         <div class="quiz-card" id="quiz-card">
+          <div class="mascot" id="mascot">🐣</div>
           <div class="quiz-emoji" id="quiz-emoji"></div>
           <div class="quiz-question" id="quiz-question"></div>
           <div class="quiz-options" id="quiz-options"></div>
@@ -93,6 +99,8 @@
     </section>
 
   </div>
+
+  <button class="home-fab" id="btn-home-fab" aria-label="חזרה לדף הבית" hidden>🏠</button>
 
   <div id="confetti-layer" aria-hidden="true"></div>
   <div id="heart-layer" aria-hidden="true"></div>

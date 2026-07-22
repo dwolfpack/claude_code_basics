@@ -21,6 +21,8 @@
   function showScreen(name) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[name].classList.add('active');
+    const fab = document.getElementById('btn-home-fab');
+    fab.hidden = name === 'home';
   }
 
   function shuffled(arr) {
@@ -49,6 +51,69 @@
       utter.rate = 0.85;
       window.speechSynthesis.speak(utter);
     } catch (e) { /* audio is a bonus, never block the game on it */ }
+  }
+
+  // ===== Sound effects: tiny synthesized tones, no external assets =====
+  let audioCtx = null;
+  function getAudioCtx() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type, delay, gainLevel) {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      osc.connect(g);
+      g.connect(ctx.destination);
+      const start = ctx.currentTime + (delay || 0);
+      g.gain.setValueAtTime(gainLevel || 0.15, start);
+      g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration + 0.02);
+    } catch (e) { /* audio is a bonus, never block the game on it */ }
+  }
+
+  function playDing() {
+    playTone(880, 0.12, 'sine', 0, 0.16);
+    playTone(1318.5, 0.2, 'sine', 0.09, 0.16);
+  }
+
+  function playBuzz() {
+    playTone(190, 0.28, 'sawtooth', 0, 0.09);
+  }
+
+  function playFanfare() {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, 0.22, 'triangle', i * 0.1, 0.14));
+  }
+
+  // ===== Mascot =====
+  const MASCOT = {
+    grade1: { idle: '🐣', happy: '🐥', sad: '🥺' },
+    grade5: { idle: '🦉', happy: '🤩', sad: '😅' },
+  };
+
+  function setMascotGrade(grade) {
+    const el = document.getElementById('mascot');
+    el.classList.remove('happy', 'sad');
+    el.textContent = (MASCOT[grade] || MASCOT.grade1).idle;
+  }
+
+  function reactMascot(kind) {
+    const el = document.getElementById('mascot');
+    const set = MASCOT[state.grade] || MASCOT.grade1;
+    el.classList.remove('happy', 'sad');
+    void el.offsetWidth;
+    el.textContent = kind === 'happy' ? set.happy : set.sad;
+    el.classList.add(kind === 'happy' ? 'happy' : 'sad');
+    setTimeout(() => { el.textContent = set.idle; }, 750);
   }
 
   // ===== localStorage helpers =====
@@ -138,12 +203,35 @@
     window.speechSynthesis && window.speechSynthesis.cancel();
     openMenu(state.grade);
   });
+  document.getElementById('btn-home-fab').addEventListener('click', () => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    showScreen('home');
+  });
+
+  // ===== Progress display: numeric fraction (grade5) or dots (grade1) =====
+  function setProgressMode(grade) {
+    const isDots = grade === 'grade1';
+    document.getElementById('progress-fraction').hidden = isDots;
+    document.getElementById('progress-dots').hidden = !isDots;
+  }
+
+  function renderProgressDots(filled, total) {
+    const wrap = document.getElementById('progress-dots');
+    wrap.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'progress-dot' + (i < filled ? ' filled' : '');
+      wrap.appendChild(dot);
+    }
+  }
 
   // ===== Quiz dispatch =====
   function startQuiz(grade, category) {
     state.grade = grade;
     state.category = category;
     document.getElementById('quiz-card').classList.remove('memory-mode');
+    setMascotGrade(grade);
+    setProgressMode(grade);
     showScreen('quiz');
     if (category.type === 'memory') {
       startMemoryGame(category);
@@ -173,6 +261,7 @@
     document.getElementById('q-score').textContent = state.score;
     const progressPct = (state.index / state.questions.length) * 100;
     document.getElementById('progress-fill').style.width = `${progressPct}%`;
+    if (state.grade === 'grade1') renderProgressDots(state.index, state.questions.length);
 
     const emojiEl = document.getElementById('quiz-emoji');
     const questionEl = document.getElementById('quiz-question');
@@ -199,7 +288,8 @@
       const replayBtn = document.createElement('button');
       replayBtn.className = 'replay-btn';
       replayBtn.type = 'button';
-      replayBtn.textContent = '🔊 השמיעו שוב';
+      replayBtn.setAttribute('aria-label', 'השמיעו שוב');
+      replayBtn.textContent = '🔊';
       replayBtn.addEventListener('click', () => speakHebrew(q.speak));
       questionEl.after(replayBtn);
       setTimeout(() => speakHebrew(q.speak), 250);
@@ -232,11 +322,15 @@
       feedback.textContent = pick(['כל הכבוד! 🎉', 'מעולה! ✨', 'נכון מאוד! 👏', 'איזה יופי! 🌟']);
       feedback.className = 'quiz-feedback good';
       vibrate(30);
+      playDing();
+      reactMascot('happy');
     } else {
       btn.classList.add('wrong');
       feedback.textContent = pick(['כמעט! נסו שוב בפעם הבאה 💪', 'לא נורא, ממשיכים! 🙂', 'התשובה הנכונה מסומנת למעלה 👆']);
       feedback.className = 'quiz-feedback bad';
       vibrate([20, 40, 20]);
+      playBuzz();
+      reactMascot('sad');
     }
 
     document.getElementById('q-score').textContent = state.score;
@@ -271,6 +365,7 @@
     document.getElementById('progress-fill').style.width = '0%';
     document.getElementById('quiz-feedback').textContent = '';
     document.getElementById('quiz-feedback').className = 'quiz-feedback';
+    renderProgressDots(0, memory.pairs);
 
     const card = document.getElementById('quiz-card');
     card.classList.add('memory-mode');
@@ -311,6 +406,8 @@
     const [a, b] = memory.flipped;
     if (a.dataset.symbol === b.dataset.symbol) {
       vibrate(30);
+      playDing();
+      reactMascot('happy');
       setTimeout(() => {
         a.classList.add('matched');
         b.classList.add('matched');
@@ -320,12 +417,15 @@
         document.getElementById('q-index').textContent = memory.matched;
         document.getElementById('q-score').textContent = memory.matched;
         document.getElementById('progress-fill').style.width = `${(memory.matched / memory.pairs) * 100}%`;
+        renderProgressDots(memory.matched, memory.pairs);
         if (memory.matched === memory.pairs) {
           setTimeout(() => finishQuiz(memory.pairs, memory.pairs, memory.mistakes), 500);
         }
       }, 400);
     } else {
       memory.mistakes++;
+      playBuzz();
+      reactMascot('sad');
       setTimeout(() => {
         a.classList.remove('flipped');
         b.classList.remove('flipped');
@@ -398,6 +498,7 @@
     // Reward: confetti scaled to performance.
     const intensity = pct >= 0.9 ? 'high' : pct >= 0.6 ? 'mid' : pct > 0 ? 'low' : null;
     if (intensity) setTimeout(() => launchConfetti(intensity), 150);
+    if (starCount === 3) setTimeout(playFanfare, 150);
 
     setupLikeButton();
     showScreen('results');
@@ -432,4 +533,11 @@
 
   document.getElementById('btn-play-again').addEventListener('click', () => startQuiz(state.grade, state.category));
   document.getElementById('btn-back-menu').addEventListener('click', () => openMenu(state.grade));
+
+  // ===== Offline support: register the service worker (best-effort) =====
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is a bonus */ });
+    });
+  }
 })();
