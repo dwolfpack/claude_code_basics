@@ -19,6 +19,15 @@
   };
 
   function showScreen(name) {
+    // Every mini-game with pending timers (balloon's spawn loop, build's
+    // advance/speak timeouts, memory's flip/match timeouts) must stop them on
+    // any screen change, or a timer fires later into a screen the player has
+    // already left. Centralized here instead of scattered across every exit
+    // path, so a future exit path can't forget to wire it in.
+    stopBalloonGame();
+    stopBuildGame();
+    stopMemoryTimers();
+    clearReplayButton();
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[name].classList.add('active');
     const fab = document.getElementById('btn-home-fab');
@@ -169,6 +178,47 @@
     setTimeout(() => { el.textContent = set.idle; }, 750);
   }
 
+  // ===== Shared per-question UI: HUD, replay button, correct/wrong feedback =====
+  // Used by all four game engines (mc quiz, memory, build-sequence, balloon) so
+  // each one reports progress/outcomes rather than re-implementing display logic.
+  function updateHud(indexText, scoreText, dotsCurrent, dotsTotal) {
+    document.getElementById('q-index').textContent = indexText;
+    document.getElementById('q-score').textContent = scoreText;
+    document.getElementById('progress-fill').style.width = `${(dotsCurrent / dotsTotal) * 100}%`;
+    if (state.grade === 'grade1') renderProgressDots(dotsCurrent, dotsTotal);
+  }
+
+  function clearReplayButton() {
+    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
+  }
+
+  // Replaces any existing replay button with one for `text` (after `afterEl`),
+  // or just clears it if `text` is falsy - the replay button lives outside the
+  // area that gets wiped between renders, so it must be reset explicitly.
+  function showReplayButton(afterEl, text) {
+    clearReplayButton();
+    if (!text) return;
+    const btn = document.createElement('button');
+    btn.className = 'replay-btn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'השמיעו שוב');
+    btn.textContent = '🔊';
+    btn.addEventListener('click', () => speakHebrew(text));
+    afterEl.after(btn);
+  }
+
+  function celebrateCorrect() {
+    vibrate(30);
+    playDing();
+    reactMascot('happy');
+  }
+
+  function celebrateWrong() {
+    vibrate([20, 40, 20]);
+    playBuzz();
+    reactMascot('sad');
+  }
+
   // ===== localStorage helpers =====
   function bestKey(grade, categoryId) { return `hebrewquest_best_${grade}_${categoryId}`; }
   function likeKey(grade, categoryId) { return `hebrewquest_like_${grade}_${categoryId}`; }
@@ -254,12 +304,10 @@
   document.getElementById('btn-menu-back').addEventListener('click', () => showScreen('home'));
   document.getElementById('btn-quiz-back').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
-    stopBalloonGame();
     openMenu(state.grade);
   });
   document.getElementById('btn-home-fab').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
-    stopBalloonGame();
     showScreen('home');
   });
 
@@ -282,7 +330,6 @@
 
   // ===== Quiz dispatch =====
   function startQuiz(grade, category) {
-    stopBalloonGame();
     state.grade = grade;
     state.category = category;
     document.getElementById('quiz-card').classList.remove('memory-mode');
@@ -317,21 +364,15 @@
     feedback.textContent = '';
     feedback.className = 'quiz-feedback';
 
-    document.getElementById('q-index').textContent = Math.min(state.index + 1, state.questions.length);
-    document.getElementById('q-score').textContent = state.score;
-    const progressPct = (state.index / state.questions.length) * 100;
-    document.getElementById('progress-fill').style.width = `${progressPct}%`;
-    if (state.grade === 'grade1') renderProgressDots(state.index, state.questions.length);
+    updateHud(Math.min(state.index + 1, state.questions.length), state.score, state.index, state.questions.length);
 
     const emojiEl = document.getElementById('quiz-emoji');
     const questionEl = document.getElementById('quiz-question');
     const optionsEl = document.getElementById('quiz-options');
     optionsEl.innerHTML = '';
-    // The replay button lives as a sibling of questionEl (outside optionsEl), so it
-    // survives an early exit (back/home mid-question) unless removed explicitly here.
-    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
 
     if (q.type === 'intro') {
+      showReplayButton(questionEl, null);
       emojiEl.textContent = q.emoji;
       questionEl.classList.add('passage');
       questionEl.textContent = q.text;
@@ -346,17 +387,8 @@
     questionEl.classList.remove('passage');
     emojiEl.textContent = q.emoji || '';
     questionEl.textContent = q.question;
-
-    if (q.speak) {
-      const replayBtn = document.createElement('button');
-      replayBtn.className = 'replay-btn';
-      replayBtn.type = 'button';
-      replayBtn.setAttribute('aria-label', 'השמיעו שוב');
-      replayBtn.textContent = '🔊';
-      replayBtn.addEventListener('click', () => speakHebrew(q.speak));
-      questionEl.after(replayBtn);
-      setTimeout(() => speakHebrew(q.speak), 250);
-    }
+    showReplayButton(questionEl, q.speak);
+    if (q.speak) setTimeout(() => speakHebrew(q.speak), 250);
 
     shuffled(q.options).forEach(opt => {
       const btn = document.createElement('button');
@@ -384,21 +416,16 @@
       btn.classList.add('correct');
       feedback.textContent = pick(['כל הכבוד! 🎉', 'מעולה! ✨', 'נכון מאוד! 👏', 'איזה יופי! 🌟']);
       feedback.className = 'quiz-feedback good';
-      vibrate(30);
-      playDing();
-      reactMascot('happy');
+      celebrateCorrect();
     } else {
       btn.classList.add('wrong');
       feedback.textContent = pick(['כמעט! נסו שוב בפעם הבאה 💪', 'לא נורא, ממשיכים! 🙂', 'התשובה הנכונה מסומנת למעלה 👆']);
       feedback.className = 'quiz-feedback bad';
-      vibrate([20, 40, 20]);
-      playBuzz();
-      reactMascot('sad');
+      celebrateWrong();
     }
 
     document.getElementById('q-score').textContent = state.score;
-    const replay = document.querySelector('.replay-btn');
-    if (replay) replay.remove();
+    clearReplayButton();
     setTimeout(nextQuestion, 1100);
   }
 
@@ -412,7 +439,12 @@
   }
 
   // ===== Memory match minigame =====
-  const memory = { flipped: [], matched: 0, pairs: 0, mistakes: 0, lock: false };
+  const memory = { flipped: [], matched: 0, pairs: 0, mistakes: 0, lock: false, timeouts: [] };
+
+  function stopMemoryTimers() {
+    memory.timeouts.forEach(t => clearTimeout(t));
+    memory.timeouts = [];
+  }
 
   function startMemoryGame(category) {
     const symbols = category.build();
@@ -423,12 +455,9 @@
     memory.lock = false;
 
     document.getElementById('q-total').textContent = memory.pairs;
-    document.getElementById('q-index').textContent = 0;
-    document.getElementById('q-score').textContent = 0;
-    document.getElementById('progress-fill').style.width = '0%';
+    updateHud(0, 0, 0, memory.pairs);
     document.getElementById('quiz-feedback').textContent = '';
     document.getElementById('quiz-feedback').className = 'quiz-feedback';
-    renderProgressDots(0, memory.pairs);
 
     const card = document.getElementById('quiz-card');
     card.classList.add('memory-mode');
@@ -468,35 +497,29 @@
     memory.lock = true;
     const [a, b] = memory.flipped;
     if (a.dataset.symbol === b.dataset.symbol) {
-      vibrate(30);
-      playDing();
-      reactMascot('happy');
-      setTimeout(() => {
+      celebrateCorrect();
+      memory.timeouts.push(setTimeout(() => {
         a.classList.add('matched');
         b.classList.add('matched');
         memory.matched++;
         memory.flipped = [];
         memory.lock = false;
-        document.getElementById('q-index').textContent = memory.matched;
-        document.getElementById('q-score').textContent = memory.matched;
-        document.getElementById('progress-fill').style.width = `${(memory.matched / memory.pairs) * 100}%`;
-        renderProgressDots(memory.matched, memory.pairs);
+        updateHud(memory.matched, memory.matched, memory.matched, memory.pairs);
         if (memory.matched === memory.pairs) {
-          setTimeout(() => finishQuiz(memory.pairs, memory.pairs, memory.mistakes), 500);
+          memory.timeouts.push(setTimeout(() => finishQuiz(memory.pairs, memory.pairs, memory.mistakes), 500));
         }
-      }, 400);
+      }, 400));
     } else {
       memory.mistakes++;
-      playBuzz();
-      reactMascot('sad');
-      setTimeout(() => {
+      celebrateWrong();
+      memory.timeouts.push(setTimeout(() => {
         a.classList.remove('flipped');
         b.classList.remove('flipped');
         a.querySelector('.memory-face').textContent = '❔';
         b.querySelector('.memory-face').textContent = '❔';
         memory.flipped = [];
         memory.lock = false;
-      }, 700);
+      }, 700));
     }
   }
 
@@ -505,7 +528,12 @@
   // tapped in the correct order to fill empty slots. Works for both single
   // Hebrew letters (grade 1, spelling a word) and whole words (grade 5,
   // reordering a sentence) - the engine doesn't care what a token represents.
-  const build = { puzzles: [], index: 0, mistakes: 0, slotIndex: 0, tokens: [] };
+  const build = { puzzles: [], index: 0, mistakes: 0, slotIndex: 0, slotEls: [], timeouts: [] };
+
+  function stopBuildGame() {
+    build.timeouts.forEach(t => clearTimeout(t));
+    build.timeouts = [];
+  }
 
   function startBuildGame(category) {
     build.puzzles = category.build();
@@ -518,12 +546,8 @@
   function renderBuildPuzzle() {
     const puzzle = build.puzzles[build.index];
     build.slotIndex = 0;
-    build.tokens = puzzle.tokens;
 
-    document.getElementById('q-index').textContent = build.index;
-    document.getElementById('q-score').textContent = build.index;
-    document.getElementById('progress-fill').style.width = `${(build.index / build.puzzles.length) * 100}%`;
-    if (state.grade === 'grade1') renderProgressDots(build.index, build.puzzles.length);
+    updateHud(build.index, build.index, build.index, build.puzzles.length);
 
     const emojiEl = document.getElementById('quiz-emoji');
     const questionEl = document.getElementById('quiz-question');
@@ -532,18 +556,8 @@
     questionEl.classList.remove('passage');
     questionEl.textContent = puzzle.instruction;
     optionsEl.innerHTML = '';
-    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
-
-    if (puzzle.speak) {
-      const replayBtn = document.createElement('button');
-      replayBtn.className = 'replay-btn';
-      replayBtn.type = 'button';
-      replayBtn.setAttribute('aria-label', 'השמיעו שוב');
-      replayBtn.textContent = '🔊';
-      replayBtn.addEventListener('click', () => speakHebrew(puzzle.speak));
-      questionEl.after(replayBtn);
-      setTimeout(() => speakHebrew(puzzle.speak), 250);
-    }
+    showReplayButton(questionEl, puzzle.speak);
+    if (puzzle.speak) build.timeouts.push(setTimeout(() => speakHebrew(puzzle.speak), 250));
 
     const area = document.createElement('div');
     area.className = 'build-area';
@@ -551,15 +565,16 @@
     const slotsRow = document.createElement('div');
     slotsRow.className = 'build-slots';
     puzzle.tokens.forEach(() => slotsRow.appendChild(document.createElement('div')).className = 'build-slot');
+    build.slotEls = Array.from(slotsRow.children);
 
     const tilesRow = document.createElement('div');
     tilesRow.className = 'build-tiles';
-    shuffled(puzzle.tokens.map((value, key) => ({ value, key }))).forEach(tok => {
+    shuffled(puzzle.tokens).forEach(value => {
       const tile = document.createElement('button');
       tile.className = 'build-tile';
       tile.type = 'button';
-      tile.textContent = tok.value;
-      tile.addEventListener('click', () => handleBuildTileTap(tile, tok.value, puzzle));
+      tile.textContent = value;
+      tile.addEventListener('click', () => handleBuildTileTap(tile, value, puzzle));
       tilesRow.appendChild(tile);
     });
 
@@ -570,32 +585,28 @@
 
   function handleBuildTileTap(tile, value, puzzle) {
     if (tile.classList.contains('used')) return;
-    const expected = build.tokens[build.slotIndex];
+    const expected = puzzle.tokens[build.slotIndex];
 
     if (value === expected) {
       tile.classList.add('used');
-      const slots = document.querySelectorAll('.build-slot');
-      slots[build.slotIndex].textContent = value;
-      slots[build.slotIndex].classList.add('filled');
+      build.slotEls[build.slotIndex].textContent = value;
+      build.slotEls[build.slotIndex].classList.add('filled');
       build.slotIndex++;
       vibrate(20);
       if (LETTER_SPEECH_NAME[value]) speakHebrew(LETTER_SPEECH_NAME[value]);
 
-      if (build.slotIndex === build.tokens.length) {
+      if (build.slotIndex === puzzle.tokens.length) {
         playDing();
         reactMascot('happy');
-        const replay = document.querySelector('.replay-btn');
-        if (replay) replay.remove();
-        if (puzzle.speak) setTimeout(() => speakHebrew(puzzle.speak), 350);
-        setTimeout(nextBuildPuzzle, 1500);
+        clearReplayButton();
+        if (puzzle.speak) build.timeouts.push(setTimeout(() => speakHebrew(puzzle.speak), 350));
+        build.timeouts.push(setTimeout(nextBuildPuzzle, 1500));
       }
     } else {
       build.mistakes++;
-      playBuzz();
-      reactMascot('sad');
-      vibrate([20, 40, 20]);
+      celebrateWrong();
       tile.classList.add('wrong');
-      setTimeout(() => tile.classList.remove('wrong'), 400);
+      build.timeouts.push(setTimeout(() => tile.classList.remove('wrong'), 400));
     }
   }
 
@@ -615,10 +626,11 @@
   // spawner keeps firing into a screen the player has already left.
   const BALLOON_GOAL = 8;
   const BALLOON_COLORS = ['#f472b6', '#8b5cf6', '#38bdf8', '#22c55e', '#facc15', '#fb923c'];
-  const balloon = { pool: [], target: null, score: 0, mistakes: 0, spawnInterval: null, timeouts: [], active: false };
+  const balloon = { pool: [], target: null, score: 0, mistakes: 0, spawnInterval: null, timeouts: [], active: false, area: null };
 
   function stopBalloonGame() {
     balloon.active = false;
+    balloon.area = null;
     if (balloon.spawnInterval) { clearInterval(balloon.spawnInterval); balloon.spawnInterval = null; }
     balloon.timeouts.forEach(t => clearTimeout(t));
     balloon.timeouts = [];
@@ -630,7 +642,6 @@
   }
 
   function startBalloonGame(category) {
-    stopBalloonGame();
     balloon.pool = category.build();
     balloon.score = 0;
     balloon.mistakes = 0;
@@ -639,10 +650,9 @@
 
     const optionsEl = document.getElementById('quiz-options');
     optionsEl.innerHTML = '';
-    const area = document.createElement('div');
-    area.className = 'balloon-area';
-    area.id = 'balloon-area';
-    optionsEl.appendChild(area);
+    balloon.area = document.createElement('div');
+    balloon.area.className = 'balloon-area';
+    optionsEl.appendChild(balloon.area);
 
     pickNewBalloonTarget();
     updateBalloonTarget();
@@ -656,10 +666,7 @@
   }
 
   function updateBalloonHud() {
-    document.getElementById('q-index').textContent = balloon.score;
-    document.getElementById('q-score').textContent = balloon.score;
-    document.getElementById('progress-fill').style.width = `${(balloon.score / BALLOON_GOAL) * 100}%`;
-    if (state.grade === 'grade1') renderProgressDots(balloon.score, BALLOON_GOAL);
+    updateHud(balloon.score, balloon.score, balloon.score, BALLOON_GOAL);
   }
 
   function updateBalloonTarget() {
@@ -668,22 +675,13 @@
     emojiEl.textContent = balloon.target;
     questionEl.classList.remove('passage');
     questionEl.textContent = 'לחצו על הבלון עם האות הזו!';
-    document.querySelectorAll('.replay-btn').forEach(el => el.remove());
-
-    const replayBtn = document.createElement('button');
-    replayBtn.className = 'replay-btn';
-    replayBtn.type = 'button';
-    replayBtn.setAttribute('aria-label', 'השמיעו שוב');
-    replayBtn.textContent = '🔊';
-    replayBtn.addEventListener('click', () => speakHebrew(LETTER_SPEECH_NAME[balloon.target]));
-    questionEl.after(replayBtn);
-    speakHebrew(LETTER_SPEECH_NAME[balloon.target]);
+    const speakText = LETTER_SPEECH_NAME[balloon.target];
+    showReplayButton(questionEl, speakText);
+    speakHebrew(speakText);
   }
 
   function spawnBalloon() {
-    if (!balloon.active) return;
-    const area = document.getElementById('balloon-area');
-    if (!area) { stopBalloonGame(); return; }
+    if (!balloon.active || !balloon.area) return;
 
     // Weighted toward the target letter so kids aren't waiting too long between chances.
     const letter = Math.random() < 0.4 ? balloon.target : pick(balloon.pool);
@@ -696,7 +694,7 @@
     el.style.animationDuration = `${5 + Math.random() * 2.5}s`;
     el.addEventListener('click', () => handleBalloonTap(el, letter));
     el.addEventListener('animationend', () => el.remove());
-    area.appendChild(el);
+    balloon.area.appendChild(el);
   }
 
   function handleBalloonTap(el, letter) {
@@ -706,9 +704,7 @@
 
     if (letter === balloon.target) {
       balloon.score++;
-      vibrate(25);
-      playDing();
-      reactMascot('happy');
+      celebrateCorrect();
       if (balloon.score >= BALLOON_GOAL) {
         stopBalloonGame();
         balloon.timeouts.push(setTimeout(() => finishQuiz(BALLOON_GOAL, BALLOON_GOAL, balloon.mistakes), 500));
@@ -719,9 +715,7 @@
       }
     } else {
       balloon.mistakes++;
-      vibrate([20, 40, 20]);
-      playBuzz();
-      reactMascot('sad');
+      celebrateWrong();
     }
   }
 
