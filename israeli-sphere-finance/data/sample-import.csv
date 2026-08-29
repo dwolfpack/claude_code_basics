@@ -1,0 +1,8 @@
+name,type,currency,balance,depositFeePct,assetFeePct,equityPct
+Bank Hapoalim Checking,bank_checking,ILS,18500,,,
+Discount Card,credit_card,ILS,3200,,,
+IBKR Brokerage,brokerage,USD,42000,,,70
+Company RSU,rsu,USD,55000,,,100
+Migdal Pension,pension,ILS,310000,1.5,0.3,65
+Menora Kupat Gemel (old employer),gemel,ILS,42000,2.0,0.6,50
+Harel Keren Hishtalmut,hishtalmut,ILS,88000,0.5,0.4,80

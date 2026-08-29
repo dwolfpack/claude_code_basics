@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Israeli Sphere Finance</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <h1>🇮🇱 Israeli Sphere Finance</h1>
+    <p class="subtitle">A fully local dashboard for your accounts, pensions, RSUs and investments. Nothing here ever leaves your browser.</p>
+  </header>
+
+  <main class="page">
+
+    <section class="card">
+      <h2>Net Worth Overview</h2>
+      <div class="net-worth-value" id="netWorthValue">₪0</div>
+      <div id="bucketBars" class="bucket-bars"></div>
+    </section>
+
+    <section class="card">
+      <h2>Your Profile</h2>
+      <p class="hint">Used only to tailor the suggestions below — stored locally, never sent anywhere.</p>
+      <div class="form-row">
+        <label>Birth year
+          <input type="number" id="birthYear" placeholder="e.g. 1990" />
+        </label>
+        <label>Monthly expenses (₪)
+          <input type="number" id="monthlyExpenses" placeholder="e.g. 15000" />
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Add an Account</h2>
+      <p class="hint">Enter balances manually from your bank/insurer/broker's app or statement export.</p>
+      <div class="form-row">
+        <label>Type
+          <select id="newType"></select>
+        </label>
+        <label>Institution / name
+          <input type="text" id="newName" placeholder="e.g. Bank Hapoalim, Migdal Gemel" />
+        </label>
+        <label>Currency
+          <input type="text" id="newCurrency" value="ILS" />
+        </label>
+        <label>Balance
+          <input type="number" id="newBalance" placeholder="0" />
+        </label>
+      </div>
+      <div class="form-row" id="feeFields" style="display:none">
+        <label>Deposit fee % (דמי ניהול מהפקדה)
+          <input type="number" step="0.01" id="newDepositFee" placeholder="0" />
+        </label>
+        <label>Annual asset fee % (דמי ניהול מצבירה)
+          <input type="number" step="0.01" id="newAssetFee" placeholder="0" />
+        </label>
+        <label>Equity allocation % (optional)
+          <input type="number" id="newEquityPct" placeholder="e.g. 60" />
+        </label>
+      </div>
+      <button id="addAccountBtn" class="btn-primary">Add Account</button>
+    </section>
+
+    <section class="card">
+      <h2>Import from CSV</h2>
+      <p class="hint">
+        Header row: <code>name,type,currency,balance,depositFeePct,assetFeePct,equityPct</code>.
+        See <code>data/sample-import.csv</code> for a template and valid <code>type</code> values.
+      </p>
+      <input type="file" id="csvInput" accept=".csv,text/csv" />
+      <p id="importStatus" class="hint"></p>
+    </section>
+
+    <section class="card">
+      <h2>Accounts</h2>
+      <table class="accounts-table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Type</th><th>Currency</th><th>Balance</th><th>Fees (dep./annual)</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="accountsBody"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Suggestions</h2>
+      <div id="insightsList"></div>
+    </section>
+
+    <section class="card">
+      <h2>Backup</h2>
+      <p class="hint">Your data lives only in this browser's local storage. Export a backup file periodically, especially before clearing browser data.</p>
+      <button id="exportBtn" class="btn-secondary">Export backup (.json)</button>
+      <label class="btn-secondary file-label">
+        Restore from backup
+        <input type="file" id="backupInput" accept=".json" style="display:none" />
+      </label>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Runs entirely offline in your browser. No accounts, no server, no data leaves your device.</p>
+  </footer>
+
+  <script src="js/categories.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/csv.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
