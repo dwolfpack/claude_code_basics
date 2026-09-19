@@ -27,6 +27,13 @@
     rollH: 0.95,
     invuln: 1.5,
     lives: 3,
+    enemyFrom: 400,      // metres of running before the first thrower shows up
+    enemyScoreFrom: 500, // and this much score on the board
+    throwWindup: 0.6,    // telegraph time before a star leaves the hand
+    starSpeed: 17,       // closing speed on top of the world scroll
+    starR: 0.22,
+    starHigh: 1.3,       // duck under it
+    starLow: 0.42,       // jump over it
     magnetTime: 8,
     shieldTime: 12,
     doubleTime: 12,
@@ -159,6 +166,7 @@
         case 'power':  this.blip(520, 0.1, 'triangle', 0.12, 880);
                        var self = this; setTimeout(function () { self.blip(880, 0.16, 'triangle', 0.1, 1320); }, 90); break;
         case 'shieldbreak': this.blip(700, 0.22, 'sine', 0.12, 240); break;
+        case 'throw':  this.noise(0.14, 0.07); this.blip(880, 0.12, 'sawtooth', 0.07, 420); break;
         case 'start':  this.blip(440, 0.1, 'triangle', 0.1, 660); break;
         case 'over':   this.blip(400, 0.5, 'sawtooth', 0.12, 90); break;
       }
@@ -413,6 +421,29 @@
       r: 0.42, taken: false, spin: Math.random() * 6.28, vx: 0, vy: 0 };
   }
 
+  function makeEnemy(z, side) {
+    return {
+      kind: 'enemy', side: side, x: side * rand(2.6, 3.2), z: z, zPrev: z,
+      throwZ: rand(30, 40), windup: 0, thrown: false, throwAnim: 0,
+      aimLane: -1, seed: Math.random() * 6.28
+    };
+  }
+
+  function makeStar(fromX, fromY, z, targetLane, low) {
+    return {
+      kind: 'star', x: fromX, y: fromY, x0: fromX, y0: fromY, z: z, zPrev: z,
+      zStart: z, zEnd: CFG.playerZ + 2.2,
+      targetX: laneX(targetLane), targetY: low ? CFG.starLow : CFG.starHigh,
+      r: CFG.starR, low: low, spin: Math.random() * 6.28, dodged: false
+    };
+  }
+
+  function countEnemies() {
+    var n = 0;
+    for (var i = 0; i < G.entities.length; i++) if (G.entities[i].kind === 'enemy') n++;
+    return n;
+  }
+
   function makePower(type, lane, z) {
     return { kind: 'power', type: type, lane: lane, x: laneX(lane), z: z, zPrev: z,
       y: 1.25, r: 0.6, taken: false, spin: Math.random() * 6.28 };
@@ -509,6 +540,12 @@
       if (chance(0.5)) coinZigzag(z, randInt(7, 11));
       else coinLine(randInt(0, 2), z, randInt(6, 10));
       used = 8;
+    }
+
+    // Roadside throwers, once the run has some distance and score behind it.
+    if (G.distance > CFG.enemyFrom && G.score > CFG.enemyScoreFrom && countEnemies() < 3 &&
+        chance(0.38 + d * 0.34)) {
+      G.entities.push(makeEnemy(z + used + rand(2, 8), chance(0.5) ? -1 : 1));
     }
 
     // Sprinkle power-ups on a clear lane.
@@ -664,7 +701,7 @@
     if (player.invuln > 0) player.invuln -= dt;
 
     // Run cycle speeds up with the world.
-    if (player.onGround && player.rolling <= 0) player.runPhase += dt * (6 + G.speed * 0.42);
+    if (player.onGround && player.rolling <= 0) player.runPhase += dt * (5.5 + G.speed * 0.34);
   }
 
   /* ───────────────────────── Power-ups ───────────────────────── */
@@ -706,16 +743,46 @@
       return;
     }
 
+    damagePlayer(projX(e.x, e.z, scaleAt(e.z)), projY(1.1, scaleAt(e.z)));
+  }
+
+  function damagePlayer(sx, sy) {
     G.lives--;
     player.invuln = CFG.invuln;
     G.shake = 0.6;
     G.flash = 0.3;
     G.speed = Math.max(CFG.startSpeed, G.speed * 0.72);
     Audio2.play('hit');
-    sparkle(projX(e.x, e.z, scaleAt(e.z)), projY(1.1, scaleAt(e.z)), '#ff6b8b', 16);
+    sparkle(sx, sy, '#ff6b8b', 16);
     renderLives();
     if (G.lives <= 0) endRun();
     else toast(G.lives === 1 ? 'Last life!' : G.lives + ' lives left');
+  }
+
+  function hitStar(e) {
+    var s = scaleAt(e.z);
+    var sx = projX(e.x, e.z, s), sy = projY(e.y, s);
+    if (G.powers.dash > 0) {              // dash shatters it mid-air
+      e.dodged = true;
+      e.dead = true;
+      sparkle(sx, sy, '#ffcf5c', 14);
+      addScore(30 * scoreMultiplier(), { x: sx, y: sy });
+      return;
+    }
+    if (player.invuln > 0) return;
+    if (G.powers.shield > 0) {
+      G.powers.shield = 0;
+      player.invuln = CFG.invuln;
+      e.dead = true;
+      e.dodged = true;
+      Audio2.play('shieldbreak');
+      toast('🛡️ Shield absorbed it');
+      G.shake = 0.35;
+      return;
+    }
+    e.dead = true;
+    e.dodged = true;
+    damagePlayer(sx, sy);
   }
 
   function collidePlayer() {
@@ -756,6 +823,16 @@
         continue;
       }
 
+      if (e.kind === 'star') {
+        if (e.dead) continue;
+        var szNear = Math.min(e.z, e.zPrev) - e.r, szFar = Math.max(e.z, e.zPrev) + e.r;
+        if (szFar < pz0 || szNear > pz1) continue;
+        if (Math.abs(e.x - px) > halfW + e.r) continue;
+        if (e.y + e.r < pyBottom || e.y - e.r > pyTop) continue;
+        hitStar(e);
+        continue;
+      }
+
       if (e.kind !== 'obstacle' || e.broken) continue;
       var near = e.z - e.len / 2, far = e.z + e.len / 2;
       if (far < pz0 || near > pz1) continue;
@@ -779,6 +856,49 @@
     if (screenPos) floater(screenPos.x, screenPos.y, '+' + amount);
   }
 
+  function throwStar(e) {
+    if (e.aimLane < 0) e.aimLane = player.lane;
+    e.thrown = true;
+    e.throwAnim = 0.35;
+    var low = chance(0.4);
+    var star = makeStar(e.x * 0.82, 1.35, e.z - 0.4, e.aimLane, low);
+    G.entities.push(star);
+    Audio2.play('throw');
+  }
+
+  function updateEnemies(dt) {
+    for (var i = 0; i < G.entities.length; i++) {
+      var e = G.entities[i];
+      if (e.kind !== 'enemy') continue;
+      if (e.throwAnim > 0) e.throwAnim -= dt;
+      if (e.thrown || e.z > e.throwZ) continue;
+      if (e.windup === 0) e.aimLane = player.lane;   // telegraphs the target lane
+      e.windup += dt;
+      if (e.windup >= CFG.throwWindup) throwStar(e);
+    }
+  }
+
+  function updateStars(dt) {
+    for (var i = 0; i < G.entities.length; i++) {
+      var e = G.entities[i];
+      if (e.kind !== 'star' || e.dead) continue;
+      e.z -= CFG.starSpeed * dt;       // on top of the world scroll
+      e.spin += dt * 18;
+      var span = e.zStart - e.zEnd;
+      var t = span > 0.1 ? clamp((e.zStart - e.z) / span, 0, 1) : 1;
+      var ease = t * t * (3 - 2 * t);
+      e.x = lerp(e.x0, e.targetX, ease);
+      e.y = lerp(e.y0, e.targetY, ease);
+      if (!e.dodged && e.z < CFG.playerZ - 0.7) {
+        // Slipped past: pay for the dodge.
+        e.dodged = true;
+        var s = scaleAt(CFG.playerZ);
+        addScore(15 * scoreMultiplier(), { x: projX(laneX(player.lanePos), CFG.playerZ, s), y: projY(1.9, s) });
+        Audio2.play('lane');
+      }
+    }
+  }
+
   function updateWorld(dt) {
     var boost = G.powers.dash > 0 ? CFG.dashBoost : 1;
     var speed = G.speed * boost;
@@ -795,12 +915,15 @@
       e.z -= move;
       if (e.spin != null) e.spin += dt * 3.2;
       if (e.broken) { e.broken -= dt; if (e.broken <= 0) { G.entities.splice(i, 1); continue; } }
-      if (e.z < 1.2) G.entities.splice(i, 1);
+      if (e.dead || e.z < 1.2) G.entities.splice(i, 1);
     }
     for (i = G.scenery.length - 1; i >= 0; i--) {
       G.scenery[i].z -= move;
       if (G.scenery[i].z < 1) G.scenery.splice(i, 1);
     }
+
+    updateEnemies(dt);
+    updateStars(dt);
 
     G.spawnZ -= move;
     G.scenerySpawnZ -= move;
@@ -1209,6 +1332,167 @@
     ctx.restore();
   }
 
+  /* A rival ninja on a roadside plinth: idles, winds up, then throws. */
+  function drawEnemy(e) {
+    if (e.z < 1.3 || e.z > CFG.drawDist + 12) return;
+    var s = scaleAt(e.z);
+    var plinth = 0.45;
+
+    box3d(e.x, 0, plinth, 0.52, e.z - 0.5, e.z + 0.5, '#241a3c', '#35275a', '#180f2b');
+
+    var aiming = !e.thrown && e.windup > 0;
+    var charge = aiming ? clamp(e.windup / CFG.throwWindup, 0, 1) : 0;
+
+    // Menacing glow while winding up.
+    if (aiming) {
+      var gx = projX(e.x, e.z, s), gy = projY(plinth + 1.1, s);
+      var gg = ctx.createRadialGradient(gx, gy, 1, gx, gy, 1.8 * s);
+      gg.addColorStop(0, 'rgba(255,107,139,' + (0.25 + charge * 0.3) + ')');
+      gg.addColorStop(1, 'rgba(255,107,139,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.arc(gx, gy, 1.8 * s, 0, 6.2832); ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(projX(e.x, e.z, s), projY(plinth, s));
+    ctx.scale(s, -s);
+
+    var suit = '#4a1f36', suitDark = '#2b1122', band = '#ff6b8b', steel = '#d9d3ea';
+    var idle = Math.sin(G.time * 2.4 + e.seed) * 0.02;
+    var hipY = 0.58 + idle, shoulderY = 0.98 + idle, headY = 1.24 + idle;
+
+    // Legs planted in a wide stance
+    limb(-0.08, hipY, -0.14, hipY - 0.3, -0.17, 0.02, 0.13, suitDark);
+    limb(0.08, hipY, 0.14, hipY - 0.3, 0.17, 0.02, 0.13, suitDark);
+
+    // Torso
+    ctx.fillStyle = suit;
+    ctx.beginPath();
+    ctx.moveTo(-0.17, hipY - 0.02);
+    ctx.quadraticCurveTo(-0.22, shoulderY - 0.12, -0.18, shoulderY);
+    ctx.quadraticCurveTo(0, shoulderY + 0.08, 0.18, shoulderY);
+    ctx.quadraticCurveTo(0.22, shoulderY - 0.12, 0.17, hipY - 0.02);
+    ctx.quadraticCurveTo(0, hipY - 0.09, -0.17, hipY - 0.02);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = band;
+    ctx.lineWidth = 0.06;
+    ctx.beginPath();
+    ctx.moveTo(-0.17, hipY + 0.04);
+    ctx.quadraticCurveTo(0, hipY + 0.09, 0.17, hipY + 0.04);
+    ctx.stroke();
+
+    // Throwing arm: cocked back, then snapped forward
+    var throwT = e.throwAnim > 0 ? clamp(e.throwAnim / 0.35, 0, 1) : 0;
+    var armSide = e.side < 0 ? 1 : -1;   // throws with the arm facing the road
+    var cock = charge * 0.9;
+    var handX = armSide * (0.24 + cock * 0.12) * (throwT > 0 ? -0.4 : 1);
+    var handY = shoulderY + cock * 0.3 - (throwT > 0 ? 0.28 : 0);
+    limb(armSide * 0.16, shoulderY - 0.02, armSide * 0.3, shoulderY + cock * 0.14, handX, handY, 0.1, suit);
+    limb(-armSide * 0.16, shoulderY - 0.02, -armSide * 0.28, shoulderY - 0.16, -armSide * 0.24, shoulderY - 0.3, 0.1, suit);
+
+    // A star held ready in the cocked hand
+    if (aiming) {
+      ctx.save();
+      ctx.translate(handX, handY + 0.1);
+      ctx.rotate(G.time * 6);
+      ctx.fillStyle = steel;
+      star(0, 0, 0.13, 0.05, 4);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Head, mask slit and headband
+    ctx.fillStyle = suitDark;
+    ctx.beginPath(); ctx.arc(0, headY, 0.22, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = aiming ? '#ffd9df' : '#e7b9c4';
+    ctx.beginPath();
+    ctx.ellipse(0, headY - 0.01, 0.15, 0.048, 0, 0, 6.2832);
+    ctx.fill();
+    ctx.fillStyle = '#c0203c';
+    ctx.beginPath(); ctx.ellipse(-0.07, headY - 0.01, 0.032, 0.03, 0, 0, 6.2832); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0.07, headY - 0.01, 0.032, 0.03, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = band;
+    ctx.lineWidth = 0.07;
+    ctx.beginPath();
+    ctx.moveTo(-0.2, headY + 0.08);
+    ctx.quadraticCurveTo(0, headY + 0.13, 0.2, headY + 0.08);
+    ctx.stroke();
+    drawRibbon(e.side < 0 ? -0.18 : 0.18, headY + 0.06, e.side < 0 ? -1 : 1, G.time + e.seed, 0.07, 0.26, band);
+
+    ctx.restore();
+  }
+
+  function drawStar(e) {
+    if (e.dead || e.z < 1.1) return;
+    var s = scaleAt(e.z);
+    var x = projX(e.x, e.z, s), y = projY(e.y, s);
+    var r = e.r * s;
+
+    // Trail back toward where it came from
+    var ts = scaleAt(Math.min(CFG.drawDist, e.z + 3));
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = '#ff6b8b';
+    ctx.lineWidth = Math.max(1, r * 0.5);
+    ctx.beginPath();
+    ctx.moveTo(projX(lerp(e.x, e.x0, 0.12), e.z + 3, ts), projY(lerp(e.y, e.y0, 0.12), ts));
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.restore();
+
+    var gl = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 2.6);
+    gl.addColorStop(0, 'rgba(255,107,139,0.42)');
+    gl.addColorStop(1, 'rgba(255,107,139,0)');
+    ctx.fillStyle = gl;
+    ctx.beginPath(); ctx.arc(x, y, r * 2.6, 0, 6.2832); ctx.fill();
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(e.spin);
+    var sg = ctx.createLinearGradient(-r, -r, r, r);
+    sg.addColorStop(0, '#ffffff');
+    sg.addColorStop(0.5, '#cfc8e6');
+    sg.addColorStop(1, '#8d86a8');
+    ctx.fillStyle = sg;
+    star(0, 0, r, r * 0.34, 4);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(20,12,34,0.8)';
+    ctx.lineWidth = Math.max(1, r * 0.1);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(20,12,34,0.85)';
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.16, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
+
+  /* Chevrons on the road warn which lane is being aimed at. */
+  function drawAimWarnings() {
+    for (var i = 0; i < G.entities.length; i++) {
+      var e = G.entities[i];
+      if (e.kind !== 'enemy' || e.thrown || e.windup <= 0 || e.aimLane < 0) continue;
+      var charge = clamp(e.windup / CFG.throwWindup, 0, 1);
+      var z = CFG.playerZ + 10;
+      var s = scaleAt(z);
+      var cx = projX(laneX(e.aimLane), z, s), cy = projY(0.02, s);
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.45 * Math.abs(Math.sin(G.time * 12));
+      ctx.fillStyle = '#ff6b8b';
+      for (var k = 0; k < 2; k++) {
+        var oy = cy - k * 0.55 * s;
+        ctx.beginPath();
+        ctx.moveTo(cx, oy + 0.42 * s * (0.6 + charge * 0.4));
+        ctx.lineTo(cx - 0.46 * s, oy - 0.08 * s);
+        ctx.lineTo(cx - 0.27 * s, oy - 0.08 * s);
+        ctx.lineTo(cx, oy + 0.22 * s);
+        ctx.lineTo(cx + 0.27 * s, oy - 0.08 * s);
+        ctx.lineTo(cx + 0.46 * s, oy - 0.08 * s);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
   function roundRect(x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -1393,6 +1677,11 @@
 
     var bob = airborne ? 0 : Math.sin(phase * 2) * 0.03;
     var swing = Math.sin(phase);
+    var sway = airborne ? 0 : swing * 0.035;
+    // Each limb alternates off its own half of the cycle. Driving both from
+    // one mirrored term (the old bug) made the legs splay apart and snap back
+    // together instead of striding.
+    var liftL = Math.max(0, swing), liftR = Math.max(0, -swing);
     var hipY = 0.7 + bob;
     var shoulderY = 1.14 + bob;
     var headY = 1.44 + bob;
@@ -1410,11 +1699,11 @@
       limb(-0.1, hipY, -0.24, hipY - 0.26, footL[0], footL[1], 0.155, suitDark);
       limb(0.1, hipY, 0.26, hipY - 0.14, footR[0], footR[1], 0.155, suitDark);
     } else {
-      var f = swing * 0.26;
-      footL = [-0.09 - f, hipY - 0.68 + Math.max(0, f) * 0.42];
-      footR = [0.09 + f, hipY - 0.68 + Math.max(0, -f) * 0.42];
-      limb(-0.1, hipY, -0.12 - f * 0.5, hipY - 0.36, footL[0], footL[1], 0.155, suitDark);
-      limb(0.1, hipY, 0.12 + f * 0.5, hipY - 0.36, footR[0], footR[1], 0.155, suitDark);
+      var hipL = -0.1 + sway, hipR = 0.1 + sway;
+      footL = [hipL - 0.015 + liftL * 0.045, hipY - 0.68 + liftL * 0.34];
+      footR = [hipR + 0.015 - liftR * 0.045, hipY - 0.68 + liftR * 0.34];
+      limb(hipL, hipY, hipL - 0.04 + liftL * 0.02, hipY - 0.36 + liftL * 0.11, footL[0], footL[1], 0.155, suitDark);
+      limb(hipR, hipY, hipR + 0.04 - liftR * 0.02, hipY - 0.36 + liftR * 0.11, footR[0], footR[1], 0.155, suitDark);
     }
     // Tabi boots
     for (var b = 0; b < 2; b++) {
@@ -1424,6 +1713,9 @@
       ctx.fillStyle = rgba('#6ef7c1', 0.5);
       ctx.beginPath(); ctx.ellipse(ft[0], ft[1] - 0.055, 0.075, 0.022, 0, 0, 6.2832); ctx.fill();
     }
+
+    ctx.save();
+    ctx.translate(sway * 0.7, 0);
 
     // Torso, seen from behind
     var tg = ctx.createLinearGradient(-0.26, hipY, 0.26, shoulderY);
@@ -1469,9 +1761,11 @@
       limb(-0.19, shoulderY - 0.03, -0.34, shoulderY + 0.06, -0.4, shoulderY + 0.22, 0.115, suit);
       limb(0.19, shoulderY - 0.03, 0.34, shoulderY + 0.06, 0.4, shoulderY + 0.22, 0.115, suit);
     } else {
-      var a = swing * 0.22;
-      limb(-0.19, shoulderY - 0.02, -0.26 + a, shoulderY - 0.2, -0.22 + a * 1.5, shoulderY - 0.38, 0.115, suit);
-      limb(0.19, shoulderY - 0.02, 0.26 - a, shoulderY - 0.2, 0.22 - a * 1.5, shoulderY - 0.38, 0.115, suit);
+      var aL = -swing, aR = swing;
+      limb(-0.19, shoulderY - 0.02, -0.25 - aL * 0.03, shoulderY - 0.2,
+           -0.235 - aL * 0.06, shoulderY - 0.42 + aL * 0.17, 0.115, suit);
+      limb(0.19, shoulderY - 0.02, 0.25 + aR * 0.03, shoulderY - 0.2,
+           0.235 + aR * 0.06, shoulderY - 0.42 + aR * 0.17, 0.115, suit);
     }
 
     // Head: hood over a rounded mask
@@ -1510,6 +1804,8 @@
     ctx.moveTo(-headR * 0.94, headY + 0.08);
     ctx.quadraticCurveTo(0, headY + 0.15, headR * 0.94, headY + 0.08);
     ctx.stroke();
+
+    ctx.restore();
   }
 
   function drawPlayer() {
@@ -1600,6 +1896,8 @@
     G.scenery.sort(function (a, b) { return b.z - a.z; });
     for (var i = 0; i < G.scenery.length; i++) drawScenery(G.scenery[i]);
 
+    drawAimWarnings();
+
     renderList.length = 0;
     for (i = 0; i < G.entities.length; i++) renderList.push(G.entities[i]);
     renderList.push({ kind: 'player', z: CFG.playerZ });
@@ -1611,6 +1909,8 @@
       else if (e.kind === 'obstacle') drawObstacle(e);
       else if (e.kind === 'coin') drawCoin(e);
       else if (e.kind === 'power') drawPower(e);
+      else if (e.kind === 'enemy') drawEnemy(e);
+      else if (e.kind === 'star') drawStar(e);
     }
 
     // Speed lines once the run gets fast
@@ -1967,7 +2267,7 @@
   window.ShadowStep = {
     G: G, player: player, CFG: CFG, OBSTACLES: OBSTACLES, STATE: STATE, Store: Store,
     moveLane: moveLane, jump: doJump, roll: doRoll, start: startRun, laneX: laneX,
-    challengeUrl: challengeUrl
+    challengeUrl: challengeUrl, makeEnemy: makeEnemy, makeStar: makeStar
   };
 
   if ('serviceWorker' in navigator) {
