@@ -38,6 +38,10 @@
     <div class="hud-row hud-second">
       <div id="hudLives" class="lives" aria-label="lives"></div>
       <div id="hudMultiplier" class="multiplier hidden">x2</div>
+      <div id="hudRival" class="rival-chip hidden">
+        <span class="rival-chip-name" id="hudRivalName">Rival</span>
+        <span class="rival-chip-score" id="hudRivalScore">0</span>
+      </div>
     </div>
     <div id="hudPowerups" class="powerups"></div>
   </div>
@@ -56,6 +60,12 @@
       <p class="tagline">A kind ninja on a midnight rooftop run.<br />Dodge, leap, roll — and gather every coin.</p>
       <button id="playBtn" class="primary-btn" type="button">Start Run</button>
       <div class="best-line">Best <strong id="menuBest">0</strong> &nbsp;·&nbsp; Coins <strong id="menuCoins">0</strong></div>
+      <button id="shareMenuBtn" class="ghost-btn hidden" type="button">Challenge a friend</button>
+      <div id="rivalBanner" class="rival-banner hidden">
+        <span class="rival-swords" aria-hidden="true">⚔️</span>
+        <span class="rival-text"><strong id="rivalName">A ninja</strong> challenges you<br /><strong id="rivalScore" class="rival-target">0</strong></span>
+        <button id="rivalClear" class="rival-clear" type="button" aria-label="Clear challenge">×</button>
+      </div>
       <ul class="how-to">
         <li><span class="key">Swipe ←/→</span> change lane</li>
         <li><span class="key">Swipe ↑ / Tap</span> jump</li>
@@ -90,7 +100,13 @@
         <div><span id="overCoins">0</span><small>coins</small></div>
         <div><span id="overBest">0</span><small>best</small></div>
       </div>
+      <div id="rivalResult" class="rival-result hidden"></div>
       <button id="againBtn" class="primary-btn" type="button">Run Again</button>
+      <div class="share-row">
+        <input id="nameInput" class="name-input" type="text" maxlength="14" placeholder="Your ninja name"
+               autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Your ninja name" />
+        <button id="shareBtn" class="share-btn" type="button">Share</button>
+      </div>
       <button id="menuBtn" class="ghost-btn" type="button">Main menu</button>
     </div>
   </section>

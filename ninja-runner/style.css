@@ -306,6 +306,109 @@ html, body {
   color: var(--text-dim);
 }
 
+/* ───────── Score sharing & rivals ───────── */
+.rival-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  background: rgba(20, 10, 38, 0.62);
+  border: 1px solid rgba(255, 107, 139, 0.45);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+
+.rival-chip::before { content: '⚔️'; font-size: 0.72rem; }
+.rival-chip-name { color: var(--text-dim); max-width: 78px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rival-chip-score { color: var(--rose); font-variant-numeric: tabular-nums; }
+
+.rival-chip.beaten { border-color: rgba(110, 247, 193, 0.55); }
+.rival-chip.beaten::before { content: '🏆'; }
+.rival-chip.beaten .rival-chip-score { color: var(--jade); }
+
+.rival-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 14px;
+  background: rgba(255, 107, 139, 0.12);
+  border: 1px solid rgba(255, 107, 139, 0.32);
+}
+
+.rival-swords { font-size: 1.15rem; }
+.rival-text { flex: 1; font-size: 0.78rem; line-height: 1.5; color: var(--text-dim); }
+.rival-text strong { color: var(--text); }
+.rival-target { color: var(--rose) !important; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+
+.rival-clear {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rival-result {
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: rgba(110, 247, 193, 0.14);
+  border: 1px solid rgba(110, 247, 193, 0.35);
+  color: var(--jade);
+}
+
+.rival-result.missed {
+  background: rgba(255, 107, 139, 0.12);
+  border-color: rgba(255, 107, 139, 0.32);
+  color: var(--rose);
+}
+
+.share-row { display: flex; gap: 8px; margin-top: 10px; }
+
+.name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.name-input::placeholder { color: rgba(183, 171, 208, 0.7); font-weight: 500; }
+.name-input:focus { outline: none; border-color: rgba(255, 207, 92, 0.6); }
+
+.share-btn {
+  flex: 0 0 auto;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 207, 92, 0.45);
+  background: rgba(255, 207, 92, 0.14);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.share-btn:active { transform: translateY(1px) scale(0.99); }
+
 /* ───────── Toast ───────── */
 .toast {
   position: absolute;
