@@ -9,8 +9,8 @@
   var CFG = {
     laneW: 1.35,         // world units between lane centers
     playerZ: 6.8,        // player's distance in front of the camera
-    camY: 2.9,           // camera height above the road
-    horizonFrac: 0.36,   // horizon position as a fraction of canvas height
+    camY: 3.5,           // camera height above the road
+    horizonFrac: 0.30,   // horizon position as a fraction of canvas height
     focalFrac: 0.88,     // focal length as a fraction of canvas height
     drawDist: 95,        // furthest z we spawn / draw
     gravity: -36,
@@ -19,9 +19,9 @@
     bufferTime: 0.16,    // input buffering window
     rollTime: 0.56,
     laneTime: 0.13,
-    startSpeed: 15,
-    maxSpeed: 39,
-    accel: 0.38,         // speed gained per second of running
+    startSpeed: 11,
+    maxSpeed: 30,
+    accel: 0.26,         // speed gained per second of running
     playerW: 0.8,
     playerH: 1.75,
     rollH: 0.95,
@@ -88,7 +88,7 @@
   /* ───────────────────────── Persistence ───────────────────────── */
   var Store = {
     key: 'shadowstep.v1',
-    data: { best: 0, coins: 0, runs: 0, far: 0, sound: true },
+    data: { best: 0, coins: 0, runs: 0, far: 0, sound: true, name: '', rival: null },
     load: function () {
       try {
         var raw = localStorage.getItem(this.key);
@@ -226,7 +226,8 @@
     shake: 0,
     flash: 0,
     powers: { magnet: 0, shield: 0, double: 0, dash: 0 },
-    newBest: false
+    newBest: false,
+    rivalBeaten: false
   };
 
   var player = {
@@ -267,6 +268,7 @@
     G.shake = 0;
     G.flash = 0;
     G.newBest = false;
+    G.rivalBeaten = false;
     G.powers.magnet = G.powers.shield = G.powers.double = G.powers.dash = 0;
 
     player.lane = player.lanePos = player.laneFrom = 1;
@@ -812,6 +814,17 @@
 
     // Distance points, doubled while the ✨ power-up is live.
     addScore(move * 0.9 * scoreMultiplier(), null);
+
+    var rival = Store.data.rival;
+    if (rival && !G.rivalBeaten && G.score > rival.score) {
+      G.rivalBeaten = true;
+      Audio2.play('power');
+      toast('🏆 Passed ' + rival.name + '!');
+      G.flash = 0.2;
+      var rs = scaleAt(CFG.playerZ);
+      sparkle(projX(laneX(player.lanePos), CFG.playerZ, rs), projY(player.y + 1, rs), '#6ef7c1', 18);
+      renderRival();
+    }
 
     if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
     if (G.flash > 0) G.flash = Math.max(0, G.flash - dt * 2.2);
@@ -1659,7 +1672,9 @@
   ['hud', 'hudScore', 'hudDistance', 'hudCoins', 'hudLives', 'hudMultiplier', 'hudPowerups',
    'menu', 'menuBest', 'menuCoins', 'pauseScreen', 'pauseScore', 'pauseDistance', 'pauseCoins',
    'gameOver', 'overTitle', 'overScore', 'overDistance', 'overCoins', 'overBest', 'overBestTag',
-   'playBtn', 'resumeBtn', 'quitBtn', 'againBtn', 'menuBtn', 'pauseBtn', 'soundBtn']
+   'playBtn', 'resumeBtn', 'quitBtn', 'againBtn', 'menuBtn', 'pauseBtn', 'soundBtn',
+   'hudRival', 'hudRivalName', 'hudRivalScore', 'rivalBanner', 'rivalName', 'rivalScore',
+   'rivalClear', 'rivalResult', 'shareBtn', 'shareMenuBtn', 'nameInput']
     .forEach(function (id) { el[id] = document.getElementById(id); });
 
   function bumpHud(id) {
@@ -1707,9 +1722,102 @@
 
   function show(node, visible) { node.classList.toggle('hidden', !visible); }
 
+  /* ── Score sharing ──
+     The site is static, so scores travel as challenge links: a shared URL
+     carries the sender's name and best score, and whoever opens it runs
+     against that number. */
+  function cleanName(v) {
+    return String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, '').trim().slice(0, 14);
+  }
+
+  function readChallenge() {
+    var params;
+    try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+    var score = parseInt(params.get('best'), 10);
+    if (!isFinite(score) || score <= 0) return;
+    Store.data.rival = { name: cleanName(params.get('by')) || 'A ninja', score: Math.min(score, 99999999) };
+    Store.save();
+    // Strip the query so a refresh doesn't keep re-applying the same challenge.
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+      }
+    } catch (e2) { /* ignore */ }
+  }
+
+  function challengeUrl(name, best) {
+    var base = window.location.origin + window.location.pathname;
+    return base + '?by=' + encodeURIComponent(name) + '&best=' + best;
+  }
+
+  function copyText(text, onDone) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { onDone(true); }, function () { onDone(legacyCopy(text)); });
+    } else {
+      onDone(legacyCopy(text));
+    }
+  }
+
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  function shareBest() {
+    var best = Math.floor(Store.data.best);
+    if (best <= 0) { toast('Finish a run first'); return; }
+    var name = cleanName(el.nameInput.value) || cleanName(Store.data.name) || 'A ninja';
+    Store.data.name = name;
+    Store.save();
+    el.nameInput.value = name;
+
+    var url = challengeUrl(name, best);
+    var text = name + ' scored ' + best.toLocaleString() + ' in Shadow Step. Can you beat it?';
+
+    if (navigator.share) {
+      navigator.share({ title: 'Shadow Step', text: text, url: url }).catch(function () { /* dismissed */ });
+      return;
+    }
+    copyText(url, function (ok) {
+      if (ok) toast('Challenge link copied');
+      else window.prompt('Copy your challenge link', url);
+    });
+  }
+
+  function renderRival() {
+    var rival = Store.data.rival;
+    show(el.rivalBanner, !!rival);
+    if (rival) {
+      el.rivalName.textContent = rival.name;
+      el.rivalScore.textContent = rival.score.toLocaleString();
+      el.hudRivalName.textContent = rival.name;
+      el.hudRivalScore.textContent = rival.score.toLocaleString();
+      el.hudRival.classList.toggle('beaten', G.rivalBeaten);
+    }
+    show(el.hudRival, !!rival && G.state === STATE.PLAY);
+    show(el.shareMenuBtn, Store.data.best > 0);
+  }
+
+  function clearRival() {
+    Store.data.rival = null;
+    Store.save();
+    renderRival();
+  }
+
   function setMenuStats() {
     el.menuBest.textContent = Math.floor(Store.data.best).toLocaleString();
     el.menuCoins.textContent = Store.data.coins.toLocaleString();
+    renderRival();
   }
 
   function startRun() {
@@ -1726,6 +1834,7 @@
     show(el.pauseScreen, false);
     show(el.pauseBtn, true);
     show(el.hud, true);
+    renderRival();
     Audio2.play('start');
     toast('Go!');
   }
@@ -1747,6 +1856,17 @@
     el.overBest.textContent = Math.floor(Store.data.best).toLocaleString();
     el.overTitle.textContent = G.newBest ? 'New Record!' : 'Run Complete';
     show(el.overBestTag, G.newBest);
+
+    var rival = Store.data.rival;
+    if (rival) {
+      var diff = score - rival.score;
+      el.rivalResult.textContent = diff > 0
+        ? 'You beat ' + rival.name + ' by ' + diff.toLocaleString() + '!'
+        : rival.name + ' still leads by ' + Math.abs(diff).toLocaleString();
+      el.rivalResult.classList.toggle('missed', diff <= 0);
+    }
+    show(el.rivalResult, !!rival);
+    el.nameInput.value = cleanName(Store.data.name);
     show(el.pauseScreen, false);
     show(el.gameOver, true);
     show(el.pauseBtn, false);
@@ -1791,6 +1911,10 @@
   el.quitBtn.addEventListener('click', function () { endRun(); });
   el.pauseBtn.addEventListener('click', togglePause);
   el.soundBtn.addEventListener('click', toggleSound);
+  el.shareBtn.addEventListener('click', shareBest);
+  el.shareMenuBtn.addEventListener('click', shareBest);
+  el.rivalClear.addEventListener('click', clearRival);
+  el.nameInput.addEventListener('keydown', function (e) { e.stopPropagation(); });
 
   /* ───────────────────────── Main loop ───────────────────────── */
   var last = 0;
@@ -1832,6 +1956,7 @@
   /* ───────────────────────── Boot ───────────────────────── */
   resize();
   resetRun();
+  readChallenge();
   setMenuStats();
   renderLives();
   el.soundBtn.textContent = Audio2.on ? '🔊' : '🔇';
@@ -1840,8 +1965,9 @@
   requestAnimationFrame(frame);
 
   window.ShadowStep = {
-    G: G, player: player, CFG: CFG, OBSTACLES: OBSTACLES, STATE: STATE,
-    moveLane: moveLane, jump: doJump, roll: doRoll, start: startRun, laneX: laneX
+    G: G, player: player, CFG: CFG, OBSTACLES: OBSTACLES, STATE: STATE, Store: Store,
+    moveLane: moveLane, jump: doJump, roll: doRoll, start: startRun, laneX: laneX,
+    challengeUrl: challengeUrl
   };
 
   if ('serviceWorker' in navigator) {
