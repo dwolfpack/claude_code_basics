@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="description" content="Golden Trail — a mobile arcade beat-'em-up. Pick one of four knights and fight down a trail of bandits, treasure and dragons." />
+<meta name="theme-color" content="#160f0a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Golden Trail" />
+<title>Golden Trail — Knights of the Dragon Road</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <!-- ───────── HUD ───────── -->
+  <div id="hud" class="hud hidden" aria-hidden="true">
+    <div class="hud-top">
+      <div class="hero-plate">
+        <canvas id="hudFace" class="hero-face" width="96" height="96"></canvas>
+        <div class="hero-meters">
+          <div class="hero-name" id="hudName">Knight</div>
+          <div class="bar hp"><span id="hudHp" style="width:100%"></span></div>
+          <div class="vials" id="hudVials"></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-stat"><small>Stage</small><b id="hudStage">1</b></div>
+        <div class="hud-stat"><small>Gold</small><b id="hudGold">0</b></div>
+      </div>
+    </div>
+    <div id="bossBar" class="boss-bar hidden">
+      <span class="boss-name" id="bossName">Dragon</span>
+      <div class="bar boss"><span id="bossHp" style="width:100%"></span></div>
+    </div>
+  </div>
+
+  <button id="pauseBtn" class="icon-btn pause-btn hidden" type="button" aria-label="Pause">❚❚</button>
+  <button id="soundBtn" class="icon-btn sound-btn" type="button" aria-label="Toggle sound">🔊</button>
+
+  <!-- ───────── Touch controls ───────── -->
+  <div id="touch" class="touch hidden" aria-hidden="true">
+    <div id="stick" class="stick"><span id="stickNub" class="stick-nub"></span></div>
+    <div class="pad">
+      <button id="btnMagic" class="act magic" type="button" aria-label="Magic">
+        <span class="act-glyph">✦</span><span class="act-tag">Magic</span>
+      </button>
+      <button id="btnJump" class="act jump" type="button" aria-label="Jump">
+        <span class="act-glyph">⤒</span><span class="act-tag">Jump</span>
+      </button>
+      <button id="btnAttack" class="act attack" type="button" aria-label="Attack">
+        <span class="act-glyph">⚔</span><span class="act-tag">Attack</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ───────── Title ───────── -->
+  <section id="menu" class="overlay">
+    <div class="panel">
+      <div class="crest" aria-hidden="true"><span class="crest-axe">🪓</span><span class="crest-dragon">🐉</span></div>
+      <h1>Golden<span>Trail</span></h1>
+      <p class="tagline">Four knights. One long road.<br />Bandits, treasure and dragons at the end of it.</p>
+      <button id="playBtn" class="primary-btn" type="button">Begin the Trail</button>
+      <button id="continueBtn" class="ghost-btn hidden" type="button">Continue — Stage <span id="continueStage">1</span></button>
+      <div class="best-line">Furthest <strong id="menuBest">Stage 1</strong> &nbsp;·&nbsp; Gold <strong id="menuGold">0</strong></div>
+      <ul class="how-to">
+        <li><span class="key">Stick</span> walk the trail, in and out of depth</li>
+        <li><span class="key">⚔</span> three-hit combo · hold for a heavy blow</li>
+        <li><span class="key">⤒</span> leap, or strike from the air</li>
+        <li><span class="key">✦</span> spend blue vials on knight magic</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ───────── Knight select ───────── -->
+  <section id="selectScreen" class="overlay hidden">
+    <div class="panel wide">
+      <h2>Choose your knight</h2>
+      <div id="knightGrid" class="knight-grid"></div>
+      <p id="knightBlurb" class="blurb">&nbsp;</p>
+      <button id="chooseBtn" class="primary-btn" type="button" disabled>Take the road</button>
+      <button id="selectBackBtn" class="ghost-btn" type="button">Back</button>
+    </div>
+  </section>
+
+  <!-- ───────── Trail map ───────── -->
+  <section id="trailScreen" class="overlay hidden">
+    <div class="panel wide">
+      <h2>The Trail</h2>
+      <div id="trailMap" class="trail-map"></div>
+      <div class="trail-info">
+        <div class="trail-title" id="trailTitle">Greenwood Road</div>
+        <div class="trail-desc" id="trailDesc">&nbsp;</div>
+      </div>
+      <button id="marchBtn" class="primary-btn" type="button">March out</button>
+      <div class="best-line">Gold <strong id="trailGold">0</strong> &nbsp;·&nbsp; Vials <strong id="trailVials">0</strong></div>
+      <button id="trailQuitBtn" class="ghost-btn" type="button">Abandon trail</button>
+    </div>
+  </section>
+
+  <!-- ───────── Pause ───────── -->
+  <section id="pauseScreen" class="overlay hidden">
+    <div class="panel">
+      <h2>Rest a moment</h2>
+      <div class="stat-grid">
+        <div><span id="pauseStage">1</span><small>stage</small></div>
+        <div><span id="pauseGold">0</span><small>gold</small></div>
+        <div><span id="pauseKills">0</span><small>felled</small></div>
+      </div>
+      <button id="resumeBtn" class="primary-btn" type="button">Fight on</button>
+      <button id="quitBtn" class="ghost-btn" type="button">Back to the map</button>
+    </div>
+  </section>
+
+  <!-- ───────── Stage clear ───────── -->
+  <section id="clearScreen" class="overlay hidden">
+    <div class="panel">
+      <h2 id="clearTitle">Stage clear</h2>
+      <div class="score-big" id="clearGold">0</div>
+      <div class="best-tag" id="clearTag">gold gathered</div>
+      <div class="stat-grid">
+        <div><span id="clearKills">0</span><small>felled</small></div>
+        <div><span id="clearHp">100%</span><small>health left</small></div>
+        <div><span id="clearVials">0</span><small>vials</small></div>
+      </div>
+      <button id="onwardBtn" class="primary-btn" type="button">Onward</button>
+    </div>
+  </section>
+
+  <!-- ───────── Defeat ───────── -->
+  <section id="overScreen" class="overlay hidden">
+    <div class="panel">
+      <h2>You fall on the road</h2>
+      <p class="tagline" id="overText">The trail is patient. Stand up and walk it again.</p>
+      <div class="stat-grid">
+        <div><span id="overStage">1</span><small>stage</small></div>
+        <div><span id="overKills">0</span><small>felled</small></div>
+        <div><span id="overGold">0</span><small>gold</small></div>
+      </div>
+      <button id="retryBtn" class="primary-btn" type="button">Try the stage again</button>
+      <button id="overMenuBtn" class="ghost-btn" type="button">Main menu</button>
+    </div>
+  </section>
+
+  <!-- ───────── Trail complete ───────── -->
+  <section id="winScreen" class="overlay hidden">
+    <div class="panel">
+      <div class="crest" aria-hidden="true"><span class="crest-axe">👑</span><span class="crest-dragon">🐉</span></div>
+      <h2>The trail is walked</h2>
+      <p class="tagline" id="winText">The Ashen Wyrm falls, and the road is quiet again.</p>
+      <div class="stat-grid">
+        <div><span id="winGold">0</span><small>gold</small></div>
+        <div><span id="winKills">0</span><small>felled</small></div>
+        <div><span id="winKnight">Knight</span><small>walked it</small></div>
+      </div>
+      <button id="winAgainBtn" class="primary-btn" type="button">Walk it again</button>
+      <button id="winMenuBtn" class="ghost-btn" type="button">Main menu</button>
+    </div>
+  </section>
+
+  <div id="banner" class="banner hidden"></div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Golden Trail — Knights of the Dragon Road",
+  "short_name": "Golden Trail",
+  "description": "An arcade beat-'em-up for phones: pick one of four knights and fight down a trail of bandits, treasure and dragons.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#160f0a",
+  "theme_color": "#160f0a",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
