@@ -56,6 +56,22 @@ Frostwatch Keep, The Bonefield, and The Dragon's Spine (Ashen Wyrm). Progress,
 gold and the stage you reached are saved to `localStorage`, so **Continue** on
 the title screen picks the trail back up where you left it.
 
+## The look
+
+Nothing is a sprite. Knights are drawn as articulated armour — cuirass, fauld,
+tassets, pauldrons, poleyns, sabatons, an open helm over a face in profile — so
+each of the four reads differently at a glance, and the drab roadside rabble
+never gets mistaken for you (there is a gold ring at your feet and a marker over
+your head besides).
+
+Backgrounds are procedural and keyed off world x, so they never repeat visibly
+and cost nothing to store: a hazed far range (mountains, a smoking volcano, a
+castle on a crag, rock needles), a middle silhouette (treeline, ruins, conifers,
+a bonefield, crags), a strip of cover at the verge, and one landmark per stage —
+a watchtower, a bridge, a broken statue, a wyrm-skull arch — drifting past to
+make the road feel like it goes somewhere. Distance washes colour toward each
+biome's haze, which is what separates the bands.
+
 ## Under the hood
 
 - `game.js` — the whole game in one IIFE: entities, combat, enemy AI, stage flow

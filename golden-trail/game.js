@@ -227,10 +227,14 @@
     var n = parseInt(h, 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
+  // Returns hex, not rgb(), so the result can be fed straight back into
+  // hexToRgb/rgba/shade — nesting these is common.
   function mixHex(a, b, t) {
     var ca = hexToRgb(a), cb = hexToRgb(b);
-    return 'rgb(' + Math.round(lerp(ca[0], cb[0], t)) + ',' + Math.round(lerp(ca[1], cb[1], t)) +
-           ',' + Math.round(lerp(ca[2], cb[2], t)) + ')';
+    var n = (Math.round(lerp(ca[0], cb[0], t)) << 16) |
+            (Math.round(lerp(ca[1], cb[1], t)) << 8) |
+            Math.round(lerp(ca[2], cb[2], t));
+    return '#' + ('000000' + n.toString(16)).slice(-6);
   }
   function rgba(hex, a) {
     var c = hexToRgb(hex);
@@ -1868,6 +1872,55 @@
       ctx.fill();
     }
 
+    // whatever lives in this stage's sky
+    var sky = stageBg().sky;
+    if (sky === 'stars') {
+      setLayer(0.03);
+      var sr = layerRange(0.03, 46);
+      for (var st = sr[0]; st <= sr[1]; st++) {
+        var hx = hash01(st * 19), hy = hash01(st * 29);
+        var tw = 0.35 + 0.45 * Math.abs(Math.sin(G.time * 1.6 + st));
+        ctx.fillStyle = rgba('#ffffff', tw * (0.4 + hy * 0.6));
+        ellipse(st * 46 + hx * 30, 24 + hy * 170, 1 + hx * 1.6, 1 + hx * 1.6);
+        ctx.fill();
+      }
+    } else if (sky === 'birds') {
+      setLayer(0.09);
+      var br = layerRange(0.09, 520);
+      for (var bi = br[0]; bi <= br[1]; bi++) {
+        var bx = bi * 520 + hash01(bi * 23) * 300 + G.time * 9;
+        var by = 62 + hash01(bi * 31) * 90;
+        ctx.strokeStyle = rgba('#2a2a3a', 0.35);
+        ctx.lineWidth = 2;
+        for (var k = 0; k < 3; k++) {
+          var fx = bx + k * 26, fy = by + (k % 2) * 16;
+          var wingBeat = Math.sin(G.time * 5 + k * 1.3) * 4;
+          ctx.beginPath();
+          ctx.moveTo(fx - 8, fy + wingBeat);
+          ctx.quadraticCurveTo(fx, fy - 4, fx + 8, fy + wingBeat);
+          ctx.stroke();
+        }
+      }
+    } else if (sky === 'wyrms') {
+      setLayer(0.07);
+      var wr = layerRange(0.07, 700);
+      for (var wi = wr[0]; wi <= wr[1]; wi++) {
+        var wx = wi * 700 + hash01(wi * 37) * 380;
+        var wy = 54 + hash01(wi * 41) * 74 + Math.sin(G.time * 0.7 + wi) * 12;
+        var beat = Math.sin(G.time * 2.6 + wi);
+        ctx.fillStyle = rgba('#1c1226', 0.5);
+        ctx.beginPath();                                  // a distant circling wyrm
+        ctx.moveTo(wx - 34, wy + beat * 7);
+        ctx.quadraticCurveTo(wx - 12, wy - 9 - beat * 5, wx, wy);
+        ctx.quadraticCurveTo(wx + 12, wy - 9 - beat * 5, wx + 34, wy + beat * 7);
+        ctx.quadraticCurveTo(wx + 12, wy + 3, wx, wy + 4);
+        ctx.quadraticCurveTo(wx - 12, wy + 3, wx - 34, wy + beat * 7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillRect(wx + 2, wy + 1, 22, 2);              // tail
+      }
+    }
+
     // sun / moon, sitting above the cloud deck
     setScreen();
     var sunX = view.dw * 0.74 - (G.cam.x * 0.03) % view.dw;
@@ -1881,41 +1934,420 @@
     ctx.globalAlpha = 1;
   }
 
-  function drawHills(pal) {
-    // far ridge
-    setLayer(0.22);
-    ctx.fillStyle = pal.hillFar;
-    ctx.beginPath();
-    ctx.moveTo(-200, FLOOR_FAR + 20);
-    var x;
-    for (x = -200; x < G.stage.len + view.dw; x += 70) {
-      var h = 130 + Math.sin(x * 0.0071) * 54 + Math.sin(x * 0.0023) * 40;
-      ctx.lineTo(x, FLOOR_FAR - h * 0.52);
+  /* ───────────────────────── Drawing: the far country ─────────────────────────
+     Three parallax bands behind the road — a far range, a middle silhouette and
+     a strip of cover at the verge — plus whatever the sky is doing. Everything
+     is procedural and keyed off world x, so it never repeats visibly and costs
+     nothing to store. */
+  var STAGE_BG = [
+    { far: 'mountains', mid: 'trees',  near: 'hedge',  sky: 'birds',  landmark: 'watchtower' },
+    { far: 'mountains', mid: 'ruins',  near: 'rocks',  sky: 'birds',  landmark: 'bridge' },
+    { far: 'volcano',   mid: 'crags',  near: 'rocks',  sky: 'none',   landmark: 'none' },
+    { far: 'castle',    mid: 'pines',  near: 'drifts', sky: 'stars',  landmark: 'none' },
+    { far: 'range',     mid: 'bones',  near: 'scrub',  sky: 'none',   landmark: 'statue' },
+    { far: 'spires',    mid: 'crags',  near: 'rocks',  sky: 'wyrms',  landmark: 'arch' }
+  ];
+
+  function stageBg() { return STAGE_BG[G.stageIndex % STAGE_BG.length]; }
+
+  // Distance washes colour toward the haze — it is what separates the bands.
+  function aerial(color, amount) {
+    return mixHex(color, (G.stage || STAGES[0]).pal.fog, amount);
+  }
+
+  // deterministic per-index noise, so a hill is the same hill every frame
+  function hash01(i) {
+    var x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function layerRange(parallax, step) {
+    var lo = G.cam.x * parallax - 160;
+    var hi = G.cam.x * parallax + view.dw + 160;
+    return [Math.floor(lo / step), Math.ceil(hi / step)];
+  }
+
+  function drawFarRange(kind, pal) {
+    setLayer(0.14);
+    var base = FLOOR_FAR + 2;
+    var i, x, r;
+
+    if (kind === 'volcano') {
+      var vr = layerRange(0.14, 1500);
+      for (i = vr[0]; i <= vr[1]; i++) {
+        x = i * 1500 + hash01(i) * 300;
+        ctx.save();
+        ctx.translate(x, base);
+        ctx.scale(0.72, 0.72);
+        ctx.translate(-x, -base);
+        ctx.fillStyle = aerial(pal.hillFar, 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x - 240, base);
+        ctx.lineTo(x - 42, base - 196);
+        ctx.lineTo(x - 14, base - 186);
+        ctx.lineTo(x + 20, base - 200);
+        ctx.lineTo(x + 250, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba('#ff8a3c', 0.5);          // lava in the crater
+        ctx.beginPath();
+        ctx.moveTo(x - 42, base - 196);
+        ctx.lineTo(x - 14, base - 186);
+        ctx.lineTo(x + 20, base - 200);
+        ctx.lineTo(x + 8, base - 176);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba('#ff8a3c', 0.42);         // a lava run down the flank
+        ctx.beginPath();
+        ctx.moveTo(x - 6, base - 184);
+        ctx.quadraticCurveTo(x + 16, base - 110, x + 30, base - 20);
+        ctx.lineTo(x + 38, base - 19);
+        ctx.quadraticCurveTo(x + 26, base - 112, x + 2, base - 184);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba('#3a2420', 0.2);          // ash plume
+        for (var p2 = 0; p2 < 6; p2++) {
+          var py = base - 226 - p2 * 46;
+          ellipse(x - 8 + Math.sin(G.time * 0.35 + p2) * (12 + p2 * 9), py,
+                  22 + p2 * 15, 13 + p2 * 8);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      return;
     }
-    ctx.lineTo(x, FLOOR_FAR + 20);
+
+    if (kind === 'castle') {
+      var cr = layerRange(0.14, 1300);
+      for (i = cr[0]; i <= cr[1]; i++) {
+        x = i * 1300 + hash01(i) * 240;
+        ctx.save();
+        ctx.translate(x, base);
+        ctx.scale(0.56, 0.56);
+        ctx.translate(-x, -base);
+        ctx.fillStyle = aerial(pal.hillFar, 0.5);
+        ctx.beginPath();                                // the crag it stands on
+        ctx.moveTo(x - 300, base);
+        ctx.quadraticCurveTo(x - 120, base - 96, x, base - 104);
+        ctx.quadraticCurveTo(x + 150, base - 92, x + 300, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = aerial(shade(pal.hillFar, -0.22), 0.42);
+        roundRect(x - 150, base - 176, 300, 76, 3); ctx.fill();   // curtain wall
+        for (var m = 0; m < 12; m++) {                            // crenellations
+          ctx.fillRect(x - 150 + m * 26, base - 188, 15, 14);
+        }
+        [-132, -6, 126].forEach(function (tx, ti) {               // towers
+          var th = ti === 1 ? 128 : 96;
+          ctx.fillStyle = aerial(shade(pal.hillFar, -0.3), 0.42);
+          roundRect(x + tx - 22, base - 100 - th, 44, th + 4, 3); ctx.fill();
+          ctx.beginPath();                                        // conical roof
+          ctx.moveTo(x + tx - 28, base - 100 - th);
+          ctx.lineTo(x + tx, base - 148 - th);
+          ctx.lineTo(x + tx + 28, base - 100 - th);
+          ctx.closePath();
+          ctx.fillStyle = aerial(shade(pal.hillNear, -0.1), 0.4);
+          ctx.fill();
+          ctx.fillStyle = rgba('#ffd166', 0.35);                  // lit windows
+          ctx.fillRect(x + tx - 6, base - 78 - th * 0.6, 11, 15);
+        });
+        ctx.restore();
+      }
+      return;
+    }
+
+    if (kind === 'spires') {
+      var sr = layerRange(0.14, 150);
+      ctx.fillStyle = aerial(pal.hillFar, 0.5);
+      for (i = sr[0]; i <= sr[1]; i++) {
+        x = i * 150 + hash01(i) * 90;
+        var h = 110 + hash01(i * 3) * 150;
+        var lean = (hash01(i * 7) - 0.5) * 40;
+        ctx.beginPath();
+        ctx.moveTo(x - 30, base);
+        ctx.lineTo(x - 8 + lean * 0.5, base - h * 0.6);
+        ctx.lineTo(x + lean, base - h);
+        ctx.lineTo(x + 14 + lean * 0.4, base - h * 0.5);
+        ctx.lineTo(x + 34, base);
+        ctx.closePath();
+        ctx.fill();
+      }
+      return;
+    }
+
+    // mountains and rolling range
+    var jag = kind === 'mountains';
+    var step = jag ? 130 : 220;
+    var mr = layerRange(0.14, step);
+    ctx.fillStyle = aerial(pal.hillFar, 0.5);
+    ctx.beginPath();
+    ctx.moveTo(mr[0] * step - 200, base);
+    for (i = mr[0]; i <= mr[1]; i++) {
+      x = i * step;
+      var peak = jag ? 120 + hash01(i) * 130 : 70 + hash01(i) * 50;
+      if (jag) {
+        ctx.lineTo(x - step * 0.4, base - peak * 0.35);
+        ctx.lineTo(x, base - peak);
+        ctx.lineTo(x + step * 0.45, base - peak * 0.3);
+      } else {
+        ctx.quadraticCurveTo(x - step * 0.5, base - peak, x, base - peak * 0.65);
+      }
+    }
+    ctx.lineTo(mr[1] * step + 200, base);
     ctx.closePath();
     ctx.fill();
 
-    // near ridge
-    setLayer(0.46);
-    ctx.fillStyle = pal.hillNear;
-    ctx.beginPath();
-    ctx.moveTo(-200, FLOOR_FAR + 26);
-    for (x = -200; x < G.stage.len + view.dw; x += 52) {
-      var h2 = 78 + Math.sin(x * 0.0113 + 1.7) * 34 + Math.sin(x * 0.0041) * 26;
-      ctx.lineTo(x, FLOOR_FAR - h2 * 0.45);
+    if (jag) {                                          // snow, or ash, on the peaks
+      ctx.fillStyle = rgba(pal.skyLow, 0.55);
+      for (i = mr[0]; i <= mr[1]; i++) {
+        x = i * step;
+        var pk = 120 + hash01(i) * 130;
+        if (pk < 190) continue;
+        ctx.beginPath();
+        ctx.moveTo(x, base - pk);
+        ctx.lineTo(x + 22, base - pk + 40);
+        ctx.lineTo(x + 8, base - pk + 34);
+        ctx.lineTo(x - 2, base - pk + 44);
+        ctx.lineTo(x - 12, base - pk + 32);
+        ctx.lineTo(x - 24, base - pk + 40);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
-    ctx.lineTo(x, FLOOR_FAR + 26);
-    ctx.closePath();
-    ctx.fill();
+  }
 
-    // haze where the ground meets the hills
+  function drawMidBand(kind, pal) {
+    setLayer(0.32);
+    var base = FLOOR_FAR - 2;
+    var step = kind === 'ruins' ? 200 : kind === 'bones' ? 240 : 96;
+    var r = layerRange(0.32, step);
+    var i, x, h;
+
+    for (i = r[0]; i <= r[1]; i++) {
+      x = i * step + hash01(i) * step * 0.5;
+      var n = hash01(i * 5);
+      var mid = aerial(pal.hillNear, 0.16);
+      ctx.fillStyle = mid;
+
+      if (kind === 'trees') {
+        h = 46 + n * 34;
+        ctx.fillStyle = shade(mid, -0.14);
+        ctx.fillRect(x - 3, base - h * 0.4, 7, h * 0.4);
+        ctx.fillStyle = mid;
+        ellipse(x - 10, base - h * 0.74, 15 + n * 5, 13 + n * 4); ctx.fill();
+        ellipse(x + 9, base - h * 0.7, 13 + n * 5, 11 + n * 4); ctx.fill();
+        ellipse(x, base - h, 16 + n * 6, 13 + n * 5); ctx.fill();
+        ctx.fillStyle = rgba('#ffffff', 0.06);
+        ellipse(x + 4, base - h - 3, 9 + n * 3, 6); ctx.fill();
+      } else if (kind === 'pines') {
+        h = 74 + n * 60;
+        ctx.fillStyle = shade(mid, -0.14);
+        ctx.fillRect(x - 3, base - 16, 6, 16);
+        ctx.fillStyle = mid;
+        for (var t = 0; t < 3; t++) {
+          ctx.beginPath();
+          ctx.moveTo(x, base - h + t * h * 0.26);
+          ctx.lineTo(x - 20 + t * 3, base - h * 0.5 + t * h * 0.22);
+          ctx.lineTo(x + 20 - t * 3, base - h * 0.5 + t * h * 0.22);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.fillStyle = rgba('#ffffff', 0.12);
+        ctx.beginPath();
+        ctx.moveTo(x, base - h); ctx.lineTo(x - 9, base - h * 0.72); ctx.lineTo(x + 7, base - h * 0.74);
+        ctx.closePath(); ctx.fill();
+      } else if (kind === 'ruins') {
+        h = 70 + n * 70;
+        ctx.fillRect(x - 46, base - h * 0.62, 30, h * 0.62);          // stub of wall
+        ctx.fillRect(x + 4, base - h, 38, h);                         // standing tower
+        ctx.fillStyle = shade(mid, -0.3);
+        ctx.fillRect(x + 14, base - h * 0.74, 16, h * 0.4);           // window
+        ctx.fillStyle = mid;
+        ctx.beginPath();                                              // broken arch
+        ctx.moveTo(x - 16, base);
+        ctx.lineTo(x - 16, base - h * 0.46);
+        ctx.quadraticCurveTo(x - 6, base - h * 0.62, x + 4, base - h * 0.5);
+        ctx.lineTo(x + 4, base);
+        ctx.lineTo(x - 4, base);
+        ctx.lineTo(x - 4, base - h * 0.44);
+        ctx.lineTo(x - 8, base - h * 0.44);
+        ctx.lineTo(x - 8, base);
+        ctx.closePath();
+        ctx.fill();
+      } else if (kind === 'bones') {
+        h = 46 + n * 40;
+        ctx.strokeStyle = mid;                                        // a ribcage
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        for (var rib = 0; rib < 5; rib++) {
+          ctx.beginPath();
+          ctx.moveTo(x - 34 + rib * 17, base);
+          ctx.quadraticCurveTo(x - 30 + rib * 17, base - h, x - 6 + rib * 15, base - h * 0.9);
+          ctx.stroke();
+        }
+        ctx.fillStyle = mid;
+        ctx.beginPath();                                              // a leaning standard
+        ctx.moveTo(x + 58, base);
+        ctx.lineTo(x + 66, base - h * 1.5);
+        ctx.lineTo(x + 72, base - h * 1.5);
+        ctx.lineTo(x + 64, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba(pal.path, 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + 68, base - h * 1.44);
+        ctx.lineTo(x + 96, base - h * 1.36);
+        ctx.lineTo(x + 90, base - h * 1.02);
+        ctx.lineTo(x + 66, base - h * 1.06);
+        ctx.closePath();
+        ctx.fill();
+      } else {                                                        // crags
+        h = 56 + n * 76;
+        ctx.beginPath();
+        ctx.moveTo(x - 52, base);
+        ctx.lineTo(x - 26, base - h * 0.62);
+        ctx.lineTo(x - 4, base - h);
+        ctx.lineTo(x + 22, base - h * 0.5);
+        ctx.lineTo(x + 50, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba('#ffffff', 0.06);
+        ctx.beginPath();
+        ctx.moveTo(x - 4, base - h); ctx.lineTo(x + 22, base - h * 0.5); ctx.lineTo(x + 4, base - h * 0.42);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  // One structure per stage, drifting past every so often, so the road feels
+  // like it is going somewhere.
+  function drawLandmark(kind, pal) {
+    if (kind === 'none') return;
+    setLayer(0.32);
+    var base = FLOOR_FAR - 2;
+    var r = layerRange(0.32, 1150);
+    for (var i = r[0]; i <= r[1]; i++) {
+      var x = i * 1150 + hash01(i * 11) * 200;
+      ctx.save();
+      ctx.translate(x, base);
+      ctx.scale(0.68, 0.68);
+      ctx.translate(-x, -base);
+      var body = aerial(shade(pal.hillNear, -0.1), 0.24);
+      if (kind === 'watchtower') {
+        ctx.fillStyle = body;
+        ctx.beginPath();
+        ctx.moveTo(x - 26, base); ctx.lineTo(x - 19, base - 150);
+        ctx.lineTo(x + 19, base - 150); ctx.lineTo(x + 26, base);
+        ctx.closePath(); ctx.fill();
+        ctx.fillRect(x - 30, base - 172, 60, 24);
+        for (var c = 0; c < 4; c++) ctx.fillRect(x - 30 + c * 17, base - 184, 10, 14);
+        ctx.fillStyle = rgba('#ffd166', 0.4);
+        ctx.fillRect(x - 7, base - 120, 14, 20);
+      } else if (kind === 'bridge') {
+        ctx.fillStyle = body;
+        ctx.fillRect(x - 210, base - 74, 420, 18);
+        for (var a = 0; a < 3; a++) {                    // arches
+          var ax = x - 140 + a * 140;
+          ctx.beginPath();
+          ctx.moveTo(ax - 52, base);
+          ctx.lineTo(ax - 52, base - 56);
+          ctx.quadraticCurveTo(ax, base - 116, ax + 52, base - 56);
+          ctx.lineTo(ax + 52, base);
+          ctx.lineTo(ax + 34, base);
+          ctx.lineTo(ax + 34, base - 54);
+          ctx.quadraticCurveTo(ax, base - 98, ax - 34, base - 54);
+          ctx.lineTo(ax - 34, base);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.fillStyle = shade(body, 0.12);
+        for (var pst = 0; pst < 15; pst++) ctx.fillRect(x - 208 + pst * 29, base - 96, 7, 24);
+      } else if (kind === 'statue') {
+        ctx.fillStyle = body;
+        ctx.fillRect(x - 34, base - 34, 68, 34);         // plinth
+        ctx.fillRect(x - 15, base - 132, 30, 100);       // body
+        ellipse(x, base - 146, 15, 17); ctx.fill();      // head
+        ctx.beginPath();                                 // a raised, broken arm
+        ctx.moveTo(x + 12, base - 124);
+        ctx.lineTo(x + 46, base - 168);
+        ctx.lineTo(x + 56, base - 158);
+        ctx.lineTo(x + 22, base - 114);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = rgba(pal.fog, 0.5);              // crack
+        ctx.fillRect(x - 4, base - 108, 5, 44);
+      } else if (kind === 'arch') {
+        ctx.fillStyle = body;
+        ctx.beginPath();
+        ctx.moveTo(x - 120, base);
+        ctx.lineTo(x - 120, base - 120);
+        ctx.quadraticCurveTo(x, base - 250, x + 120, base - 120);
+        ctx.lineTo(x + 120, base);
+        ctx.lineTo(x + 76, base);
+        ctx.lineTo(x + 76, base - 118);
+        ctx.quadraticCurveTo(x, base - 208, x - 76, base - 118);
+        ctx.lineTo(x - 76, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = rgba('#ff8a3c', 0.42);           // a wyrm skull set in the keystone
+        ellipse(x, base - 196, 26, 18); ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawVerge(kind, pal) {
+    setLayer(0.62);
+    var base = FLOOR_FAR - 7;
+    var step = kind === 'fence' ? 58 : 74;
+    var r = layerRange(0.62, step);
+    for (var i = r[0]; i <= r[1]; i++) {
+      var x = i * step + hash01(i * 13) * step * 0.4;
+      var n = hash01(i * 17);
+      ctx.fillStyle = shade(pal.prop, -0.1);
+      if (kind === 'hedge') {
+        ellipse(x, base, 30 + n * 14, 15 + n * 8); ctx.fill();
+      } else if (kind === 'rocks') {
+        ctx.beginPath();
+        ctx.moveTo(x - 22 - n * 8, base);
+        ctx.lineTo(x - 12, base - 18 - n * 12);
+        ctx.lineTo(x + 6, base - 20 - n * 10);
+        ctx.lineTo(x + 24 + n * 6, base);
+        ctx.closePath();
+        ctx.fill();
+      } else if (kind === 'drifts') {
+        ctx.fillStyle = rgba('#ffffff', 0.5);
+        ellipse(x, base + 3, 44 + n * 22, 13 + n * 6); ctx.fill();
+      } else if (kind === 'fence') {
+        ctx.fillRect(x - 3, base - 26, 6, 26);
+        ctx.fillRect(x - 3, base - 22, step, 4);
+      } else {                                            // scrub
+        ctx.strokeStyle = shade(pal.prop, 0.1);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (var b = 0; b < 5; b++) {
+          ctx.moveTo(x + b * 5 - 10, base);
+          ctx.quadraticCurveTo(x + b * 5 - 14, base - 12, x + b * 5 - 20, base - 17 - n * 6);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  function drawBackground(pal) {
+    var bg = stageBg();
+    drawFarRange(bg.far, pal);
+    drawMidBand(bg.mid, pal);
+    drawLandmark(bg.landmark, pal);
+    drawVerge(bg.near, pal);
+
+    // haze where the ground meets the country behind it
     setScreen();
-    var hz = ctx.createLinearGradient(0, FLOOR_FAR - 40, 0, FLOOR_FAR + 26);
+    var hz = ctx.createLinearGradient(0, FLOOR_FAR - 56, 0, FLOOR_FAR + 22);
     hz.addColorStop(0, rgba(pal.fog, 0));
-    hz.addColorStop(1, rgba(pal.fog, 0.55));
+    hz.addColorStop(1, rgba(pal.fog, 0.5));
     ctx.fillStyle = hz;
-    ctx.fillRect(0, FLOOR_FAR - 40, view.dw, 66);
+    ctx.fillRect(0, FLOOR_FAR - 56, view.dw, 78);
   }
 
   function drawGround(pal) {
@@ -1946,14 +2378,15 @@
     // ruts and stones so the scroll reads
     ctx.strokeStyle = rgba(shade(pal.pathAlt, -0.22), 0.28);
     ctx.lineWidth = 2;
+    ctx.beginPath();
     for (var r = 0; r < 2; r++) {
-        var ry = FLOOR_FAR + 52 + r * 58;
-      ctx.beginPath();
+      var ry = FLOOR_FAR + 52 + r * 58;
+      ctx.moveTo(left, ry);
       for (var x = left; x < right; x += 24) {
         ctx.lineTo(x, ry + Math.sin(x * 0.02 + r) * 3);
       }
-      ctx.stroke();
     }
+    ctx.stroke();
     var start = Math.floor(left / 64) * 64;
     for (var sx = start; sx < right; sx += 64) {
       var jitter = (Math.sin(sx * 0.37) + 1) * 0.5;
@@ -1965,8 +2398,31 @@
       ctx.fill();
     }
 
-    // grass/edge lines mark where the walkable band starts and stops
-    ctx.strokeStyle = rgba(shade(pal.ground, -0.25), 0.55);
+    // soft patches break up the bare road
+    var patchStart = Math.floor(left / 260) * 260;
+    for (var px = patchStart; px < right; px += 260) {
+      var pn = (Math.sin(px * 0.013) + 1) * 0.5;
+      ctx.fillStyle = rgba(shade(pal.path, pn > 0.5 ? 0.12 : -0.12), 0.055);
+      ellipse(px + pn * 150, FLOOR_FAR + 24 + pn * 160, 110 + pn * 80, 26 + pn * 20);
+      ctx.fill();
+    }
+
+    // a fringe of grass where the road meets the verge
+    var tuftStart = Math.floor(left / 22) * 22;
+    ctx.strokeStyle = rgba(shade(pal.ground, -0.22), 0.4);
+    ctx.lineWidth = 1.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (var tx = tuftStart; tx < right; tx += 22) {
+      var tn = (Math.sin(tx * 0.21) + 1) * 0.5;
+      if (tn < 0.25) continue;
+      ctx.moveTo(tx, FLOOR_FAR + 4);
+      ctx.quadraticCurveTo(tx - 1, FLOOR_FAR, tx - 3, FLOOR_FAR - 3 - tn * 3);
+      ctx.moveTo(tx + 3, FLOOR_FAR + 4);
+      ctx.quadraticCurveTo(tx + 4, FLOOR_FAR, tx + 6, FLOOR_FAR - 2 - tn * 3);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = rgba(shade(pal.ground, -0.28), 0.5);
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(left, FLOOR_FAR + 3);
@@ -2291,21 +2747,51 @@
     ctx.restore();
   }
 
-  /* A knight, a bandit and a brute are all the same figure with different
-     colours, weapon and trimmings. Local origin is between the heels. */
+  // Tapered limb segments read as armour; round strokes read as pipe cleaners.
+  function taper(x1, y1, x2, y2, w1, w2, fill, lw) {
+    var a = Math.atan2(y2 - y1, x2 - x1);
+    var nx = Math.sin(a), ny = -Math.cos(a);
+    ctx.beginPath();
+    ctx.moveTo(x1 + nx * w1, y1 + ny * w1);
+    ctx.lineTo(x2 + nx * w2, y2 + ny * w2);
+    ctx.lineTo(x2 - nx * w2, y2 - ny * w2);
+    ctx.lineTo(x1 - nx * w1, y1 - ny * w1);
+    ctx.closePath();
+    paint(fill, lw === undefined ? 1.5 : lw);
+  }
+
+  // Steel wants a gradient. The figures all share one local frame, so a
+  // gradient keyed by colour and span can be built once and reused.
+  var gradCache = {};
+  function metal(color, y0, y1) {
+    var key = color + '|' + y0 + '|' + y1;
+    var g = gradCache[key];
+    if (!g) {
+      g = ctx.createLinearGradient(0, y0, 0, y1);
+      g.addColorStop(0, shade(color, 0.34));
+      g.addColorStop(0.42, color);
+      g.addColorStop(1, shade(color, -0.32));
+      gradCache[key] = g;
+    }
+    return g;
+  }
+
+  /* A knight, a bandit and a brute are all the same figure in different
+     colours: plate over cloth, drawn as separate pieces of armour.
+     Local origin sits between the heels, +x is the way they face. */
   function drawHuman(e, opts) {
     opts = opts || {};
     var look = e.look;
     var s = scaleOf(e.y) * (e.scale || 1) * (opts.scale || 1);
     var flashing = e.flash > 0 && Math.floor(e.flash * 40) % 2 === 0;
-    // the knight flickers while invulnerable — but never mid-spell
     var blink = e.kind === 'player' && e.invuln > 0 && e.state !== 'magic' &&
                 Math.floor(e.invuln * 14) % 2 === 0;
     function C(c) { return flashing ? '#ffffff' : c; }
+    function M(c, y0, y1) { return flashing ? '#ffffff' : metal(c, y0, y1); }
 
     if (!opts.noShadow) {
       drawShadow(e.x, e.y, 17 * s, e.z);
-      if (e.kind === 'player' && e.z < 6) {                 // a ring so you never lose yourself
+      if (e.kind === 'player' && e.z < 6) {
         ctx.strokeStyle = rgba('#f2c14e', 0.5);
         ctx.lineWidth = 2.5;
         ellipse(e.x, e.y, 21 * s, 7 * s);
@@ -2314,15 +2800,20 @@
     }
     if (blink) return;
 
-    var KNEE = -26, HIP = -52, WAIST = -60, SHOULDER = -88, HEAD = -103, TOP = -116;
+    // skeleton
+    var ANKLE = -9, KNEE = -31, HIP = -55, WAIST = -63, CHEST = -80,
+        SHOULDER = -89, NECK = -93, CHIN = -96, BROW = -105, CROWN = -113;
     var pose = swingPose(e);
     var walking = e.state === 'walk';
     var swing = walking ? Math.sin(e.walkPhase) : 0;
     var bob = walking ? Math.abs(Math.sin(e.walkPhase)) * 3 : Math.sin(G.time * 2.4 + e.x * 0.02);
     var down = e.down > 0 || (e.dead && e.kind === 'foe');
     var hurt = e.hurt > 0;
-    var boot = shade(look.plate, -0.42);
-    var leather = shade(look.cloth || '#4a3a2a', -0.12);
+
+    var plate = look.plate, trim = look.trim, cloth = look.cloth || '#4a3a2a';
+    var steel = shade(plate, -0.06);
+    var dark = shade(plate, -0.38);
+    var leather = shade(cloth, -0.2);
 
     ctx.save();
     ctx.translate(e.x + (opts.dx || 0), e.y - e.z + (opts.dy || 0));
@@ -2340,132 +2831,263 @@
     }
     ctx.translate(0, -bob);
 
-    function leg(dir, cloth) {
-      if (opts.mounted) {                                    // legs down the flank
-        var off = dir * 3;
-        limb(off, HIP + 4, 13 + off, KNEE + 8, 12, C(cloth));
-        limb(13 + off, KNEE + 8, 9 + off, -8, 10, C(cloth));
-        roundRect(1 + off, -11, 18, 8, 3); paint(C(boot), 1.6);
-        return;
+    /* ── a leg: cuisse, poleyn, greave, sabaton ── */
+    function leg(dir, tone) {
+      var hipX, kneeX, ankleX, toeLift;
+      if (opts.mounted) {                                    // hooked over the flank
+        hipX = dir * 3; kneeX = 14 + dir * 2; ankleX = 10 + dir * 2; toeLift = -10;
+      } else {
+        hipX = dir * 2;
+        kneeX = dir * swing * 12;
+        ankleX = dir * swing * 19;
+        toeLift = 0;
       }
-      var kx = dir * swing * 11;
-      var fx = dir * swing * 18;
-      limb(dir * 3, HIP + 4, kx * 0.5, KNEE, 12, C(cloth));
-      limb(kx * 0.5, KNEE, fx, -5, 10, C(cloth));
-      roundRect(fx - 8, -7, 18, 8, 3); paint(C(boot), 1.6);
-    }
-
-    // cloak, hung behind everything
-    if (look.cloth && opts.cloak !== false) {
+      var pl = dir > 0 ? shade(plate, -0.2) : plate;                      // far leg sits back
+      taper(hipX, HIP + 1, kneeX, KNEE + 3, 8, 6, C(tone));                // hose at the thigh
+      taper(hipX, HIP + 6, kneeX, KNEE, 8.5, 6, M(pl, HIP, KNEE));         // cuisse
+      taper(kneeX, KNEE, ankleX, ANKLE + toeLift, 6.2, 4.6, M(pl, KNEE, ANKLE));
+      ctx.beginPath();                                                     // poleyn, with a fan
+      ctx.ellipse(kneeX, KNEE, 6.4, 5.8, 0, 0, Math.PI * 2);
+      paint(C(shade(pl, 0.1)), 1.4);
       ctx.beginPath();
-      ctx.moveTo(-7, SHOULDER + 4);
-      ctx.quadraticCurveTo(-28 - swing * 6, HIP + 6, -17 - swing * 9, -6);
-      ctx.lineTo(3, -8);
-      ctx.quadraticCurveTo(8, HIP, 7, SHOULDER + 4);
+      ctx.moveTo(kneeX - 6, KNEE + 1);
+      ctx.quadraticCurveTo(kneeX, KNEE + 8, kneeX + 6, KNEE + 1);
       ctx.closePath();
-      paint(C(shade(look.cloth, -0.24)), 1.8);
+      paint(C(shade(pl, -0.16)), 1.2);
+      ctx.beginPath();                                                     // sabaton
+      ctx.moveTo(ankleX - 6, ANKLE + toeLift + 2);
+      ctx.lineTo(ankleX + 6, ANKLE + toeLift);
+      ctx.quadraticCurveTo(ankleX + 16, ANKLE + toeLift + 4, ankleX + 14, toeLift + 1);
+      ctx.lineTo(ankleX - 6, toeLift + 1);
+      ctx.closePath();
+      paint(C(dark), 1.6);
     }
 
-    leg(1, shade(leather, -0.22));                          // back leg
-
-    // back arm, plus the shield it may be carrying
-    var bax = -13 - swing * 6;
-    limb(-7, SHOULDER + 4, bax, SHOULDER + 26, 9, C(shade(look.plate, -0.28)));
-    if (look.shield) {
+    /* ── an arm: pauldron, rerebrace, couter, vambrace, gauntlet ── */
+    function arm(rot, front) {
       ctx.save();
-      ctx.translate(bax - 3, SHOULDER + 30);
-      ctx.rotate(-0.12);
-      roundRect(-14, -28, 26, 50, 9); paint(C(shade(look.trim, -0.12)), 2);
-      roundRect(-10, -23, 18, 40, 7); paint(C(look.cloth), 1.6);
-      ellipse(-1, -3, 5.5, 5.5); paint(C(look.trim), 1.4);
+      ctx.translate(front ? 9 : -8, SHOULDER + 5);
+      ctx.rotate(rot);
+      var tone = front ? plate : shade(plate, -0.22);
+      taper(0, 0, 14, 5, 7, 5.5, C(shade(tone, 0.02)));                    // upper arm
+      ellipse(14, 5, 4.6, 4.4); paint(C(shade(tone, -0.12)), 1.2);         // couter
+      taper(14, 5, 26 + (front ? pose.reachOut * 0.4 : 0), 8, 5.2, 4.4, C(tone));
+      for (var l = 0; l < 3; l++) {                                        // pauldron lames
+        ctx.beginPath();
+        ctx.ellipse(-1 + l * 1.5, -1 + l * 4, 9 - l * 1.4, 6.5 - l, -0.25, Math.PI, Math.PI * 2.04);
+        ctx.closePath();
+        paint(C(l === 0 ? trim : shade(plate, 0.06 - l * 0.1)), 1.3);
+      }
       ctx.restore();
     }
 
-    leg(-1, leather);                                       // front leg
+    // cloak
+    if (look.cloth && opts.cloak !== false) {
+      ctx.beginPath();
+      ctx.moveTo(-8, SHOULDER + 3);
+      ctx.quadraticCurveTo(-30 - swing * 7, HIP + 4, -19 - swing * 10, -7);
+      ctx.quadraticCurveTo(-8, -3, 3, -9);
+      ctx.quadraticCurveTo(9, HIP, 7, SHOULDER + 3);
+      ctx.closePath();
+      paint(C(shade(cloth, -0.26)), 1.8);
+      ctx.beginPath();                                       // a fold, for volume
+      ctx.moveTo(-6, SHOULDER + 6);
+      ctx.quadraticCurveTo(-16 - swing * 5, HIP, -11 - swing * 7, -9);
+      ctx.lineTo(-4, -10);
+      ctx.quadraticCurveTo(-8, HIP, -2, SHOULDER + 6);
+      ctx.closePath();
+      paint(C(rgba('#000000', 0.12)), 0);
+    }
 
-    // tassets over the hips
+    leg(1, shade(leather, 0.06));                            // far leg
+    arm(pose.angle * 0.3 - 0.45 - swing * 0.3, false);       // far arm
+
+    if (look.shield) {
+      ctx.save();
+      ctx.translate(-16 - swing * 5, SHOULDER + 30);
+      ctx.rotate(-0.12);
+      ctx.beginPath();
+      ctx.moveTo(-15, -28); ctx.lineTo(13, -28);
+      ctx.quadraticCurveTo(15, 6, -1, 24);
+      ctx.quadraticCurveTo(-17, 6, -15, -28);
+      ctx.closePath();
+      paint(M(shade(trim, -0.1), -28, 24), 2.2);
+      ctx.beginPath();
+      ctx.moveTo(-10, -22); ctx.lineTo(8, -22);
+      ctx.quadraticCurveTo(10, 3, -1, 17);
+      ctx.quadraticCurveTo(-12, 3, -10, -22);
+      ctx.closePath();
+      paint(C(cloth), 1.6);
+      ellipse(-1, -4, 5.5, 5.5); paint(C(trim), 1.4);
+      ctx.restore();
+    }
+
+    leg(-1, leather);                                        // near leg
+
+    // fauld: overlapping lames at the waist, with tassets hanging over the hips
+    for (var f = 0; f < 3; f++) {
+      var fy = WAIST + 2 + f * 4.5;
+      ctx.beginPath();
+      ctx.ellipse(0, fy, 13 + f * 0.8, 5.5, 0, Math.PI, Math.PI * 2);
+      ctx.lineTo(-13 - f * 0.8, fy + 4);
+      ctx.lineTo(13 + f * 0.8, fy + 4);
+      ctx.closePath();
+      paint(C(shade(plate, -0.08 - f * 0.05)), 1.4);
+    }
     ctx.beginPath();
-    ctx.moveTo(-12, WAIST + 2);
+    ctx.moveTo(-14, HIP - 6); ctx.lineTo(-4, HIP - 6);
+    ctx.lineTo(-5, HIP + 4); ctx.lineTo(-15, HIP + 3);
+    ctx.closePath();
+    paint(C(shade(plate, -0.24)), 1.5);
+    ctx.beginPath();
+    ctx.moveTo(4, HIP - 6); ctx.lineTo(14, HIP - 6);
+    ctx.lineTo(15, HIP + 4); ctx.lineTo(5, HIP + 3);
+    ctx.closePath();
+    paint(C(shade(plate, -0.05)), 1.5);
+
+    // cuirass
+    ctx.beginPath();
+    ctx.moveTo(-14, SHOULDER + 5);
+    ctx.quadraticCurveTo(-17, CHEST + 6, -12, WAIST + 2);
     ctx.lineTo(12, WAIST + 2);
-    ctx.lineTo(15, HIP + 8);
-    ctx.lineTo(-15, HIP + 8);
+    ctx.quadraticCurveTo(17, CHEST + 6, 14, SHOULDER + 5);
+    ctx.quadraticCurveTo(0, SHOULDER - 1, -14, SHOULDER + 5);
     ctx.closePath();
-    paint(C(shade(look.plate, -0.14)), 1.8);
+    paint(M(steel, SHOULDER, WAIST + 4), 2.2);
+    ctx.beginPath();                                          // centre ridge
+    ctx.moveTo(1, SHOULDER + 4);
+    ctx.quadraticCurveTo(5, CHEST, 1, WAIST + 1);
+    ctx.quadraticCurveTo(-3, CHEST, 1, SHOULDER + 4);
+    ctx.closePath();
+    paint(C(rgba('#ffffff', 0.18)), 0);
+    ctx.beginPath();                                          // shaded flank
+    ctx.moveTo(-13, SHOULDER + 6);
+    ctx.quadraticCurveTo(-15, CHEST + 4, -11, WAIST + 1);
+    ctx.lineTo(-6, WAIST + 1);
+    ctx.quadraticCurveTo(-9, CHEST, -8, SHOULDER + 6);
+    ctx.closePath();
+    paint(C(rgba('#000000', 0.2)), 0);
+    if (look.accent) {                                        // heraldry
+      ctx.beginPath();
+      ctx.moveTo(1, CHEST - 3);
+      ctx.lineTo(7, CHEST + 4); ctx.lineTo(1, CHEST + 12); ctx.lineTo(-5, CHEST + 4);
+      ctx.closePath();
+      paint(C(look.accent), 1.2);
+    }
+    roundRect(-13, WAIST - 1, 26, 5.5, 2); paint(C(trim), 1.4);   // belt
+    roundRect(-2, WAIST - 1.5, 7, 6.5, 2); paint(C(shade(trim, 0.25)), 1.2);
 
-    // torso
+    // gorget and neck
+    taper(0, SHOULDER + 2, 1, NECK - 2, 6, 5, C(shade(look.skin, -0.22)));
     ctx.beginPath();
-    ctx.moveTo(-14, SHOULDER + 4);
-    ctx.quadraticCurveTo(-17, WAIST - 10, -11, WAIST);
-    ctx.lineTo(11, WAIST);
-    ctx.quadraticCurveTo(17, WAIST - 10, 14, SHOULDER + 4);
-    ctx.quadraticCurveTo(0, SHOULDER - 2, -14, SHOULDER + 4);
+    ctx.ellipse(0, SHOULDER + 2, 10, 5.5, 0, Math.PI, Math.PI * 2);
     ctx.closePath();
-    paint(C(look.plate), 2);
-    ctx.beginPath();                                        // lit side
-    ctx.moveTo(2, SHOULDER + 6);
-    ctx.quadraticCurveTo(13, WAIST - 12, 10, WAIST - 2);
-    ctx.lineTo(2, WAIST - 2);
+    paint(C(shade(plate, 0.12)), 1.5);
+
+    /* ── head: a face in profile, under an open helm ── */
+    ctx.beginPath();
+    ctx.moveTo(-6, CROWN + 7);
+    ctx.quadraticCurveTo(1, CROWN + 1, 7, CROWN + 8);         // crown
+    ctx.lineTo(8.5, BROW);                                    // forehead
+    ctx.lineTo(10.5, BROW + 2.5);                             // brow ridge
+    ctx.lineTo(9, BROW + 4);
+    ctx.lineTo(12.5, BROW + 7.5);                             // nose
+    ctx.lineTo(8.5, BROW + 9);
+    ctx.lineTo(9.5, BROW + 11);                               // lips
+    ctx.lineTo(7.5, CHIN + 1);                                // chin
+    ctx.quadraticCurveTo(1, CHIN + 2, -3, CHIN - 4);          // jaw
+    ctx.quadraticCurveTo(-7, BROW + 1, -6, CROWN + 7);        // skull
     ctx.closePath();
-    paint(C(rgba('#ffffff', 0.13)), 0);
-    ellipse(0, SHOULDER + 22, 6, 8); paint(C(shade(look.accent || look.plate, 0.18)), 1.5);
-    roundRect(-12, WAIST - 6, 24, 6, 2); paint(C(look.trim), 1.5);
+    paint(C(look.skin), 1.6);
+    ctx.beginPath();                                          // shaded side of the face
+    ctx.moveTo(-3, BROW);
+    ctx.quadraticCurveTo(2, BROW + 8, 1, CHIN);
+    ctx.quadraticCurveTo(-4, CHIN - 2, -4, BROW);
+    ctx.closePath();
+    paint(C(rgba('#2a1408', 0.14)), 0);
+    ctx.beginPath();                                          // eye socket
+    ctx.moveTo(4, BROW + 2.6);
+    ctx.quadraticCurveTo(7.5, BROW + 1.6, 9, BROW + 3.4);
+    ctx.quadraticCurveTo(7, BROW + 5, 4, BROW + 2.6);
+    ctx.closePath();
+    paint(C('#f3e6d6'), 0);
+    ellipse(7, BROW + 3.3, 1.7, 1.9); paint(C('#2b1a10'), 0);
+    limb(3.4, BROW + 0.4, 9.4, BROW + 1.4, 1.7, C(shade(look.hair, -0.1)));  // brow
+    limb(5.5, BROW + 10.2, 9, BROW + 10.6, 1.1, C(rgba('#4a2418', 0.5)));    // mouth
+    limb(1, CHIN - 5, 5, CHIN - 1, 1.2, C(rgba('#2a1408', 0.18)));           // jawline
+    ellipse(-1.5, BROW + 4.5, 1.9, 2.5); paint(C(shade(look.skin, -0.18)), 0);  // ear
 
-    // shoulder pads
-    ellipse(-13, SHOULDER + 5, 8.5, 7.5); paint(C(shade(look.plate, -0.08)), 1.6);
-    ellipse(13, SHOULDER + 4, 9.5, 8.5); paint(C(look.trim), 1.8);
-
-    // head
-    limb(0, SHOULDER + 2, 0, HEAD + 9, 8, C(shade(look.skin, -0.25)));
-    ellipse(1, HEAD, 11, 12); paint(C(look.skin), 1.8);
     if (opts.helm === false) {
-      ctx.beginPath();                                      // bare head
-      ctx.moveTo(-10, HEAD - 1);
-      ctx.quadraticCurveTo(-11, TOP + 3, 1, TOP + 1);
-      ctx.quadraticCurveTo(12, TOP + 3, 11, HEAD - 1);
-      ctx.quadraticCurveTo(3, HEAD - 6, -10, HEAD - 1);
+      ctx.beginPath();                                        // hair
+      ctx.moveTo(-9, BROW + 3);
+      ctx.quadraticCurveTo(-12, CROWN, 0, CROWN - 3);
+      ctx.quadraticCurveTo(10, CROWN - 1, 9.5, BROW - 2);
+      ctx.quadraticCurveTo(3, BROW - 5, -3, BROW - 3);
+      ctx.quadraticCurveTo(-7, BROW + 1, -9, BROW + 3);
       ctx.closePath();
-      paint(C(look.hair), 1.6);
+      paint(C(look.hair), 1.5);
     } else {
-      ctx.beginPath();                                      // helm
-      ctx.moveTo(-11, HEAD + 5);
-      ctx.quadraticCurveTo(-13, TOP, 1, TOP - 1);
-      ctx.quadraticCurveTo(13, TOP, 12, HEAD + 5);
-      ctx.lineTo(12, HEAD + 1);
-      ctx.quadraticCurveTo(1, HEAD - 3, -11, HEAD + 1);
+      ctx.beginPath();                                        // hair at the nape
+      ctx.moveTo(-9, BROW + 1);
+      ctx.quadraticCurveTo(-13, BROW + 8, -7, CHIN + 1);
+      ctx.quadraticCurveTo(-3, CHIN - 3, -5, BROW);
       ctx.closePath();
-      paint(C(look.plate), 1.8);
-      roundRect(-11, HEAD + 2, 23, 4, 1.8); paint(C(look.trim), 1.2);
+      paint(C(look.hair), 1.3);
+      ctx.beginPath();                                        // helm bowl
+      ctx.moveTo(-9, BROW + 3);
+      ctx.quadraticCurveTo(-11, CROWN - 3, 1, CROWN - 4);
+      ctx.quadraticCurveTo(11, CROWN - 2, 10.5, BROW + 1);
+      ctx.quadraticCurveTo(5, BROW - 2, -2, BROW - 1);
+      ctx.quadraticCurveTo(-7, BROW, -9, BROW + 3);
+      ctx.closePath();
+      paint(M(shade(plate, 0.08), CROWN, BROW + 4), 1.9);
+      ctx.beginPath();                                        // raised visor
+      ctx.moveTo(-9, BROW + 2);
+      ctx.quadraticCurveTo(1, BROW - 3, 11, BROW + 0.5);
+      ctx.lineTo(11, BROW - 2.5);
+      ctx.quadraticCurveTo(1, BROW - 7, -9, BROW - 2);
+      ctx.closePath();
+      paint(C(trim), 1.3);
+      limb(9.4, BROW + 2, 10, BROW + 6.5, 1.9, C(shade(plate, -0.05)));  // nasal bar
+      ctx.beginPath();                                        // neck guard
+      ctx.moveTo(-9, BROW + 2);
+      ctx.quadraticCurveTo(-13, BROW + 8, -8, BROW + 11);
+      ctx.quadraticCurveTo(-6, BROW + 6, -6, BROW + 2);
+      ctx.closePath();
+      paint(C(shade(plate, -0.14)), 1.4);
       if (look.plume) {
         ctx.beginPath();
-        ctx.moveTo(-3, TOP + 2);
-        ctx.quadraticCurveTo(-17 - swing * 4, TOP - 12, -25 - swing * 6, TOP + 12);
-        ctx.quadraticCurveTo(-12, TOP - 2, 2, TOP + 4);
+        ctx.moveTo(-1, CROWN - 4);
+        ctx.quadraticCurveTo(-16 - swing * 5, CROWN - 12, -26 - swing * 7, CROWN + 12);
+        ctx.quadraticCurveTo(-13, CROWN - 2, 3, CROWN - 1);
         ctx.closePath();
         paint(C(look.plume), 1.4);
+        ctx.beginPath();
+        ctx.moveTo(-3, CROWN - 4);
+        ctx.quadraticCurveTo(-14 - swing * 4, CROWN - 8, -20 - swing * 5, CROWN + 6);
+        ctx.quadraticCurveTo(-11, CROWN - 2, -1, CROWN - 2);
+        ctx.closePath();
+        paint(C(rgba('#ffffff', 0.18)), 0);
       }
     }
-    ellipse(7, HEAD + 6, 2, 2.4); paint(C('#2b1a10'), 0);   // eye under the brim
 
-    // sword arm
+    // weapon arm, over the top of everything
     var armAngle = pose.angle * 0.62 + (walking ? -swing * 0.25 : 0);
     if (e.state === 'magic') armAngle = -1.7;
+    arm(armAngle, true);
     ctx.save();
-    ctx.translate(8, SHOULDER + 8);
+    ctx.translate(9, SHOULDER + 5);
     ctx.rotate(armAngle);
-    limb(0, 0, 13, 4, 10, C(shade(look.plate, 0.04)));
-    limb(13, 4, 25 + pose.reachOut * 0.4, 7, 8.5, C(shade(look.skin, -0.12)));
-    ctx.save();
-    ctx.translate(26 + pose.reachOut * 0.45, 7);
+    ctx.translate(27 + pose.reachOut * 0.45, 8);
     ctx.rotate(pose.angle - armAngle);
-    ellipse(0, 0, 5, 5); paint(C(look.trim), 1.4);
+    roundRect(-6, -5.5, 11, 11, 3); paint(C(shade(plate, 0.1)), 1.4);    // gauntlet
     drawWeapon(look.weapon, look, C);
-    ctx.restore();
     ctx.restore();
 
     if (pose.arc > 0) drawSlashArc(pose, opts.reach || 46, e.kind === 'player' ? '#fff3cf' : '#ffd0a0');
 
-    if (e.kind === 'player' && !down) {                      // "that one is you"
-      var mk = TOP - 14 + Math.sin(G.time * 4) * 2.5;
+    if (e.kind === 'player' && !down) {                       // "that one is you"
+      var mk = CROWN - 16 + Math.sin(G.time * 4) * 2.5;
       ctx.beginPath();
       ctx.moveTo(1, mk + 9);
       ctx.lineTo(-7, mk);
@@ -2963,7 +3585,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawSky(pal);
-    drawHills(pal);
+    drawBackground(pal);
     drawGround(pal);
     drawProps('back', pal);
 
