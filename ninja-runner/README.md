@@ -19,6 +19,23 @@ Play it at `ninja-runner/index.html` (locally: `npx http-server -p 8145 .` then 
 
 A swipe down while airborne slams the ninja to the ground and rolls on landing.
 
+## Reading the track
+
+Everything you have to react to is colour-coded by the move it needs, and the cue is
+repeated at three scales so it survives distance:
+
+| Colour | Move | Where it shows |
+| --- | --- | --- |
+| Gold | Jump | Crates |
+| Rose | Roll under | Gates, and the aim chevrons of a thrower |
+| Blue | Change lane | Bamboo walls and carts |
+
+Up close each obstacle carries a chevron glyph on the face you are running at, plus a
+rim light along its top edge. Further out, a glow is painted on the road leading into
+it, which stays wide and readable when the shape does not. Past that, where the shape
+is only a few pixels tall, a fixed-size beacon stands on it so the lane and the move
+still read against the horizon.
+
 ## Gameplay
 
 - **Obstacles.** Crates are jumped, low gates are rolled under, bamboo walls have to
@@ -92,6 +109,10 @@ The numbers worth touching live in `CFG` at the top of `game.js`: `laneW`, `camY
 `horizonFrac` and `focalFrac` control the camera; `gravity`, `jumpV` and `rollTime`
 control the moves; `startSpeed`, `maxSpeed` and `accel` control the pace;
 `enemyFrom`, `enemyScoreFrom`, `throwWindup` and `starSpeed` control the throwers.
+
+`ACTION_COLOR` holds the three cue colours. The readability layers (road glow, rim
+light, glyph, beacon) can each be switched off through `window.ShadowStep.FX`, which is
+how they were profiled.
 
 Raising `camY` lifts the viewpoint and shows more road ahead, which also slides the
 ninja down the frame; lowering `horizonFrac` by roughly the same amount puts the
